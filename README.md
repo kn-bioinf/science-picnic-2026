@@ -70,16 +70,21 @@ Będą potrzebne grafiki i może kilka poglądowych struktur 3D z pdb do wyświe
 
 Każdy implementowany etap powinien mieć swoją gałąź np: `feature/welcome`, `feature/level1-builder`
 
+
 1. Klonowanie repozytorium przez SSH
+```bash
 git clone git@github.com:kn-bioinf/science-picnic-2026.git
 cd science-picnic-2026
-
+```
 2. Aktualizacja gałęzi głównej i stworzenie nowej gałęzi (feature branch) - tu dla przykładu stage 1 levelu 1
+```bash
 git switch main
 git pull
 git switch -c feature/level1-stage1
-
+```
 3. Dodawanie zmian, commit i pierwsze wypchnięcie gałęzi
+```bash
 git add src/levels/level1/stage1.py
 git commit -m "komentarz do commita"
 git push -u origin feature/level1-stage1
+```
