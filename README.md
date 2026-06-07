@@ -8,9 +8,10 @@ Silnik gry: **Pygame** | Wizualizacja 3D: **PyMOL**
 ## Struktura gry
 
 Ekran powitalny | Imię gracza, wybór poziomu
-Level 1: Budowa kinezyny | Składanie "głowy", "nóg" i "butów" (3 kroki)
-Minigra 1: Docking | Trafienie ATP do kieszeni - refleks
-Minigra 2: Runner | Kinezyna na mikrotubuli - dino-runner
+Level 1:
+    Budowa kinezyny | Składanie "głowy", "nóg" i "butów" (3 kroki)
+    Minigra 1: Docking | Trafienie ATP do kieszeni - refleks
+    Minigra 2: Runner | Kinezyna na mikrotubuli - dino-runner
 Ekran końcowy + Ranking
 
 ---
@@ -25,7 +26,7 @@ Ekran końcowy + Ranking
 ## Wymagania
 
 - Python **3.11**
-- conda (zalecane - PyMOL najłatwiej przez conda-forge)
+- conda
 
 ---
 
@@ -67,7 +68,7 @@ python main.py --minigame 2     # zacznij od minigry 2
 
 ## Zasady współpracy
 
-- Każdy etap → osobna gałąź: `feature/welcome`, `feature/level1-builder`, itd.
+- Każdy etap to osobna gałąź: `feature/welcome`, `feature/level1-builder`, itd.
 - Stan gry przez `GameState` - bez własnych globalnych zmiennych.
 - Każdy ekran/minigra implementuje `handle_event()` / `update()` / `draw()`.
 
