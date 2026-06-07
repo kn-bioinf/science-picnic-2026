@@ -21,7 +21,7 @@ Ekran końcowy + Ranking
 	- `handle_event(self, e)` — reaguj na input (klawiatura/mysz), wywołuj `self.next(score)` gdy etap się kończy,
 	- `update(self, dt)` — logika/animacje (wywoływane co klatkę),
 	- `draw(self)` — rysowanie na `self.screen`.
-- Globalny wynik jest przechowywany w `GameState.score`; kontroler poziomu sumuje wartości przesłane przez `self.next(score)`.
+- Globalny wynik jest przechowywany w `GameState.score`; kontroler poziomu sumuje wartości przesłane przez `self.next(score)`. Co do implementacji wyniku możemy się zastanowić tak, aby wynik pomiędzy etapami był w miarę spójny i skalowalny.
 
 ## Wymagania
 
@@ -60,39 +60,26 @@ python main.py --minigame 2     # zacznij od minigry 2
 
 ## Assety do przygotowania
 
+Będą potrzebne grafiki i może kilka poglądowych struktur 3D z pdb do wyświetlania użytkownikom. Reszta informacji w readme w poszczególnych katalogach
 - **Grafiki** → `assets/images/README.md`
 - **Struktury 3D** (pliki PDB) → `assets/structures/README.md`
-- Pobieranie PDB: `python tools/fetch_structures.py`
 
 ---
 
-## Zasady współpracy
+## Mini tutorial git
 
-- Każdy etap to osobna gałąź: `feature/welcome`, `feature/level1-builder`, itd.
-- Stan gry przez `GameState` - bez własnych globalnych zmiennych.
-- Każdy ekran/minigra implementuje `handle_event()` / `update()` / `draw()`.
+Każdy implementowany etap powinien mieć swoją gałąź np: `feature/welcome`, `feature/level1-builder`
 
-## Prosty workflow Git (jak tworzyć gałąź dla etapu)
-
-1. Sklonuj repo (jeśli jeszcze tego nie zrobiłeś):
-
-```bash
-git clone <repo-url>
+1. Klonowanie repozytorium przez SSH
+git clone git@github.com:kn-bioinf/science-picnic-2026.git
 cd science-picnic-2026
-```
 
-2. Zaktualizuj `main` i stwórz feature branch:
+2. Aktualizacja gałęzi głównej i stworzenie nowej gałęzi (feature branch) - tu dla przykładu stage 1 levelu 1
+git switch main
+git pull
+git switch -c feature/level1-stage1
 
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/level1-stage1
-```
-
-3. Wprowadzaj zmiany, commituj i wypychaj gałąź:
-
-```bash
+3. Dodawanie zmian, commit i pierwsze wypchnięcie gałęzi
 git add src/levels/level1/stage1.py
-git commit -m "feat(level1): implement basic Stage1 UI and next() call"
+git commit -m "komentarz do commita"
 git push -u origin feature/level1-stage1
-```
