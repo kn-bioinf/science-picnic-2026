@@ -1,0 +1,60 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+ENV/
+/.vscode/
+.DS_Store
+ranking.json
+*.egg-info/
+dist/
+build/
+__MACOSX/
+# .gitignore dla KinesinQuest
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# --- Środowiska wirtualne ---
+.venv/
+venv/
+env/
+.conda/
+
+# --- Dane gry (generowane) ---
+ranking.json
+
+# --- Pliki tymczasowe PyMOL ---
+*.png.tmp
+pymol_session.pse
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Testy ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Pliki PDB (duże, pobierane skryptem) ---
+# Odkomentuj jeśli nie chcesz trzymać struktur w repo:
+# assets/structures/*.pdb
+# assets/structures/*.cif

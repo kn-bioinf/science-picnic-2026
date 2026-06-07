@@ -1,0 +1,1 @@
+# Tutaj można umieścić jakieś wybrane struktury .pdb do przeglądania przez użytkownika w embedded okienku pymol. Może się przydać? Resztę statycznych obrazków lepiej wrzucić jako screeny z pymola lub narysowane.

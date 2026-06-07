@@ -1,0 +1,16 @@
+name: kinesinquest
+channels:
+  - conda-forge
+  - schrodinger        # oficjalny kanał PyMOL open-source
+  - defaults
+dependencies:
+  - python=3.11
+  - pymol-open-source  # PyMOL + wszystkie zależności C/OpenGL
+  - pygame>=2.5.0
+  - numpy>=1.26.0
+  - biopython>=1.83
+  - pillow>=10.0.0
+  - pip
+  - pip:
+      - pytest>=8.0.0
+      - pytest-cov>=5.0.0
