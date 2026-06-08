@@ -68,7 +68,7 @@ Będą potrzebne grafiki i może kilka poglądowych struktur 3D z pdb do wyświe
 
 ## Mini tutorial git
 
-Każdy implementowany etap powinien mieć swoją gałąź np: `feature/welcome`, `feature/level1-builder`
+Każdy implementowany etap powinien mieć swoją gałąź np: `welcome`, `level1-builder`
 
 
 1. Klonowanie repozytorium przez SSH
@@ -80,11 +80,11 @@ cd science-picnic-2026
 ```bash
 git switch main
 git pull
-git switch -c feature/level1-stage1
+git switch -c level1-stage1
 ```
 3. Dodawanie zmian, commit i pierwsze wypchnięcie gałęzi
 ```bash
 git add src/levels/level1/stage1.py
 git commit -m "komentarz do commita"
-git push -u origin feature/level1-stage1
+git push -u origin level1-stage1
 ```
