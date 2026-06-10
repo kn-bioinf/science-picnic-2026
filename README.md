@@ -34,7 +34,7 @@ Ekran końcowy + Ranking
 
 ```bash
 # 1. Sklonuj repo
-git clone <repo-url>
+git clone git@github.com:kn-bioinf/science-picnic-2026.git
 cd science-picnic-2026
 
 # 2. Utwórz środowisko
