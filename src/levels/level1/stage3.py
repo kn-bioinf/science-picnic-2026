@@ -14,6 +14,7 @@ class Stage3:
         self.next(score: int)  – wywolaj gdy etap skonczony
     """
 
+    #Ustawienia przy inicjowaniu
     def __init__(self, screen, state, next_fn):
         self.screen = screen
         self.state = state
@@ -40,6 +41,7 @@ class Stage3:
 
         self._setup_layout()
 
+    #Ustawienia pozycji kinezyny i przeszkód
     def _setup_layout(self):
         w, h = config.get_size()
         self._runner_x = int(w * 0.20)
@@ -47,6 +49,7 @@ class Stage3:
         self._runner_y = self._ground_y - self._runner_h
         self._next_spawn_distance = 0.0
 
+    #Obsługa zdarzeń - spacja do skakania, kliknięcie w przycisk po kolizji z białkiem Tau
     def handle_event(self, e):
         if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
             if not self._game_over and self._runner_y >= self._ground_y - self._runner_h:
@@ -54,6 +57,7 @@ class Stage3:
         if e.type == pygame.MOUSEBUTTONDOWN and self._game_over and self._btn.collidepoint(e.pos):
             self.next(self._score)
 
+    #Generowanie przeszkód
     def _spawn_obstacle(self, w, h):
         obstacle_w = 50
         obstacle_h = random.randint(50, 80)
@@ -61,6 +65,7 @@ class Stage3:
         rect = pygame.Rect(w + 20, obstacle_y, obstacle_w, obstacle_h)
         self._obstacles.append({"rect": rect, "passed": False})
 
+    #Aktualizacja pozycji kinezyny, sprawdzanie kolizji z przeszkodami i obsługa końca gry
     def update(self, dt):
         if self._game_over:
             return
@@ -73,7 +78,6 @@ class Stage3:
             self._spawn_obstacle(w, h)
             spawn_distance = self._speed * random.uniform(0.85, 1.7) * (1.0 - self._distance * 0.00001)
             self._next_spawn_distance = self._distance + spawn_distance
-            print(spawn_distance, self._speed)
 
         self._runner_y += self._vy * dt
         self._vy += self._gravity * dt
@@ -98,6 +102,7 @@ class Stage3:
                 self._game_over = True
                 break
 
+    #Rysowanie kinezyny, przeszkód i informacji o grze
     def draw(self):
         w, h = config.get_size()
         if not self._runner_x:
