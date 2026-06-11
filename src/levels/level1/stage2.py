@@ -74,12 +74,12 @@ class Stage2:
         self._object_type = choice["name"]
         self._object_color = choice["color"]
 
-    #Obsługa zdarzeń - spacja do upuszczenia, kliknięcie w przycisk po trafieniu lub pominięciu celu
+    #Obsługa zdarzeń - spacja do upuszczenia, kliknięcie w przycisk po pominięciu celu
     def handle_event(self, e):
         if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE and not self._released and not self._hit and not self._failed:
             self._released = True
             self._vel = [0.0, 0.0]
-        if e.type == pygame.MOUSEBUTTONDOWN and (self._hit or self._failed) and self._btn.collidepoint(e.pos):
+        if e.type == pygame.MOUSEBUTTONDOWN and self._failed and self._btn.collidepoint(e.pos):
             self.next(self._score)
 
     #Aktualizacja pozycji ligandu, sprawdzanie kolizji z celem i obsługa końca gry
