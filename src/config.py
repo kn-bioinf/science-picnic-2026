@@ -9,7 +9,7 @@ W, H  = 1280, 720
 FPS   = 60
 TITLE = "Science Picnic 2026"
 
-# Kolory – jasna paleta (czytelna w świetle dziennym)
+# Kolory - jasna paleta (czytelna w świetle dziennym)
 BG     = (242, 246, 255)
 TEXT   = ( 15,  25,  55)
 ACCENT = ( 70, 130, 200)
@@ -19,7 +19,7 @@ WHITE  = (255, 255, 255)
 
 @lru_cache(maxsize=64)
 def font(size, bold=False):
-    # cache: SysFont robi kosztowne dopasowanie czcionki z systemu — bez cache
+    # cache: SysFont robi kosztowne dopasowanie czcionki z systemu - bez cache
     # wołane wielokrotnie co klatkę (HUD + etykiety przeszkód) potrafi ścinać FPS
     return pygame.font.SysFont(
         "dejavusans,liberationsans,freesans,arial", size, bold=bold

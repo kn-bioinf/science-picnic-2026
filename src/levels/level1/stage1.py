@@ -7,17 +7,17 @@ import src.config as config
 from src.effects import CellBackground
 
 """
-Etap 1 – Złóż heterokinezynę-2.
+Etap 1 - Złóż heterokinezynę-2.
 
 Gracz buduje białko OD DOŁU na mikrotubuli, dokładając kolejno trzy klasy
 elementów: najpierw głowę motoryczną (Motor), potem trzon (Stalk), na końcu
-ogon (Tail). Kolejność klas jest wymuszona – nie da się położyć trzonu zanim
+ogon (Tail). Kolejność klas jest wymuszona - nie da się położyć trzonu zanim
 nie ma głowy itd. W każdej klasie do wyboru jest kilka wariantów pochodzących
 z różnych białek motorycznych (heteroKinesin2, homoKinesin2, Kinesin1, Dynein,
 MyosinV); tylko trio heteroKinesin2 jest poprawne.
 
 Poprawność (gatunek) sprawdzana jest dopiero po wciśnięciu „Zatwierdź".
-Wynik zależy od liczby prób – im mniej błędnych zatwierdzeń, tym lepiej.
+Wynik zależy od liczby prób - im mniej błędnych zatwierdzeń, tym lepiej.
 
 Elementy łapią się magnetycznie (anchor-snap) do następnego wolnego miejsca w
 strukturze. Pliki .png mają bardzo różne rozmiary, więc układane są wzdłuż
@@ -69,14 +69,14 @@ _SPECIES_STEM = {
     'Dynein':         'dyneino',
 }
 
-# Wymienne domeny motoryczne: motor Kinesin1 i homoKinesin2 są ~identyczne –
+# Wymienne domeny motoryczne: motor Kinesin1 i homoKinesin2 są ~identyczne -
 # pokazujemy jeden, ważny dla obu gatunków. heteroKinesin2 motor zostaje osobny.
 _MOTOR_INTERCHANGE = {'Kinesin1', 'homoKinesin2'}
 
 # ------------------------------------------------------------------ strojenie
 
 BUILD_SCALE = 0.8      # skala elementów w strefie budowania (mniejsze, by się mieściły)
-SNAP_RADIUS = 110      # px – upuszczenie w tym promieniu łapie element do struktury
+SNAP_RADIUS = 110      # px - upuszczenie w tym promieniu łapie element do struktury
 LERP_SPEED  = 11.0     # szybkość dolatywania (ease-out)
 
 # Dokładne punkty łączenia (anchory) dla POPRAWNEGO trio heteroKinesin2,
@@ -140,7 +140,7 @@ def _scaled(img, scale):
 
 
 def _load_anchor_overrides():
-    """Ręcznie ustawione anchory z anchors.json (px natywne) – mają priorytet
+    """Ręcznie ustawione anchory z anchors.json (px natywne) - mają priorytet
     nad wartościami domyślnymi. Tworzone przez anchor_tool.py."""
     path = os.path.join(_PIECES_DIR, 'anchors.json')
     try:
@@ -159,12 +159,12 @@ class _Piece:
         self.species = species
         self.klass   = klass                  # 'Motor' / 'Stalk' / 'Tail'
         # gatunki, dla których ten element jest poprawny (zwykle własny;
-        # wymienny motor pasuje do kilku) – ustawiane w _build_pieces
+        # wymienny motor pasuje do kilku) - ustawiane w _build_pieces
         self.match_species = {species}
         self.build   = _scaled(raw, BUILD_SCALE)
         self.rect    = self.build.get_rect()  # aktualna pozycja w strefie budowania
 
-        # thumbnail do tacki – dopasowany do komórki, nigdy większy niż w budowie
+        # thumbnail do tacki - dopasowany do komórki, nigdy większy niż w budowie
         self.thumb       = None
         self.thumb_rect  = pygame.Rect(0, 0, 0, 0)
         self.home        = (0, 0)             # środek miejsca w tacce
@@ -339,7 +339,7 @@ class Stage1:
         self._target_idx = (self._target_idx + delta) % len(self._targets)
         self._solved = False        # nowy cel = świeże wyzwanie
         self._msg = None
-        # pomyłki (self._fails) liczą się globalnie – nie zerujemy przy zmianie celu
+        # pomyłki (self._fails) liczą się globalnie - nie zerujemy przy zmianie celu
         for p in self._slots:
             if p is not None:
                 p.wrong = False
@@ -435,7 +435,7 @@ class Stage1:
                 conn[1] - piece.bottom_anchor[1])
 
     def _relayout(self):
-        """Układa łańcuchem anchorów sloty zajęte od dołu (przerwę pomija –
+        """Układa łańcuchem anchorów sloty zajęte od dołu (przerwę pomija -
         elementy nad luką zostają tam gdzie były, do czasu wypełnienia luki)."""
         conn = (float(self._axis_x()), float(self._mt_y()))
         for i in range(len(self._slots)):
@@ -485,13 +485,13 @@ class Stage1:
                 self._submit()
 
     def _on_down(self, pos):
-        # strzałki wyboru celu – zawsze aktywne
+        # strzałki wyboru celu - zawsze aktywne
         if self._arrow_l.collidepoint(pos):
             self._set_target(-1); return
         if self._arrow_r.collidepoint(pos):
             self._set_target(+1); return
 
-        # zadanie ukończone (cel = hetero) – czekamy tylko na „Dalej"
+        # zadanie ukończone (cel = hetero) - czekamy tylko na „Dalej"
         if self._solved and self._target() == CORRECT_SPECIES:
             if self._btn_next.collidepoint(pos):
                 self.next(self._score)
@@ -594,7 +594,7 @@ class Stage1:
             name, is_chimera = self._build_name()
             tname = _SPECIES_NAME.get(target, target)
             if is_chimera:
-                self._msg = (f'To niestety nie {tname} — to {name}!', False)
+                self._msg = (f'To niestety nie {tname} - to {name}!', False)
             else:
                 self._msg = (f'To niestety nie {tname}, tylko {name}.', False)
 
@@ -674,7 +674,7 @@ class Stage1:
 
     def _draw_assembly(self):
         # w etapie 1 kinezyna jest statyczna (kroczenie wydzielone do
-        # src/effects.draw_walking_motor – do użycia w kolejnych etapach)
+        # src/effects.draw_walking_motor - do użycia w kolejnych etapach)
         for p in self._slots:
             if p is None or p is self._drag:
                 continue
@@ -754,7 +754,7 @@ class Stage1:
             note_y = r.bottom + 10
         else:
             note_y = 320
-        cap = ('cel zadania – złóż ją, by przejść dalej'
+        cap = ('cel zadania - złóż ją, by przejść dalej'
                if tgt == CORRECT_SPECIES else 'złóż taką strukturę')
         note = config.font(12).render(cap, True, config.MUTED)
         self._canvas.blit(note, note.get_rect(centerx=cx, y=note_y))
@@ -787,7 +787,7 @@ class Stage1:
     def _draw_hud(self, w, h):
         asm_cx = (TRAY_W + (w - REF_W)) // 2
 
-        # tytuł w DWÓCH liniach ("Etap 1" / "Składanie") — krótka pierwsza linia
+        # tytuł w DWÓCH liniach ("Etap 1" / "Składanie") - krótka pierwsza linia
         # nie wchodzi już w komunikaty rysowane na środku górą pola budowy
         x0 = TRAY_W + 16
         self._canvas.blit(config.font(26, bold=True).render(
@@ -798,11 +798,11 @@ class Stage1:
             f'Wynik: {max(0, 20 - self._fails)}', True, config.ACCENT),
             (x0, 70))
 
-        # komunikat (chimera / błąd) – u góry pola budowy, z zawijaniem
+        # komunikat (chimera / błąd) - u góry pola budowy, z zawijaniem
         if self._msg and not self._solved:
             self._draw_top_text(self._msg[0], BAD_RED)
 
-        # dolny pasek – niżej, poniżej mikrotubuli (komunikaty są u góry)
+        # dolny pasek - niżej, poniżej mikrotubuli (komunikaty są u góry)
         by = h - 26
         if self._solved:
             if self._target() == CORRECT_SPECIES:
@@ -816,7 +816,7 @@ class Stage1:
                 self._draw_top_text(
                     'Gotowe! Złóż heterokinezynę-2, aby przejść dalej.', OK_GREEN)
         else:
-            # Zatwierdź (gdy pełne) + Zacznij od nowa – obok siebie, wyśrodkowane
+            # Zatwierdź (gdy pełne) + Zacznij od nowa - obok siebie, wyśrodkowane
             row = []
             if self._is_full():
                 row.append((self._btn_submit, 'Zatwierdź', OK_GREEN, config.WHITE))

@@ -15,7 +15,7 @@ class MenuScreen:
         self.state = state
         self.manager = manager
         self.name = "" if state.player_name in ("", "Gracz") else state.player_name
-        self._buttons = []     # [(rect, action)] – wypełniane w draw()
+        self._buttons = []     # [(rect, action)] - wypełniane w draw()
 
     # -------------------------------------------------------------- akcje
     def _commit_name(self):
@@ -101,5 +101,5 @@ class MenuScreen:
                      lambda: self.manager.transition_to(self.manager.KNOWLEDGE),
                      small=True)
 
-        hint = config.font(16).render("Enter — zagraj całą grę", True, config.MUTED)
+        hint = config.font(16).render("Enter - zagraj całą grę", True, config.MUTED)
         self.screen.blit(hint, hint.get_rect(center=(cx, y + 50)))

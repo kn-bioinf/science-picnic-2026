@@ -3,7 +3,7 @@
 # Sterowanie: ↑ / SPACE = skok, ↓ = szybki opad.
 #
 # Cała scena rysowana jest na stałej kanwie 1280x720 (config.W x H) i dopiero
-# skalowana do okna — dzięki temu fizyka, rozmiary i odstępy są spójne na
+# skalowana do okna - dzięki temu fizyka, rozmiary i odstępy są spójne na
 # każdym ekranie (gra jest tak samo grywalna niezależnie od rozdzielczości).
 
 import os
@@ -23,10 +23,10 @@ _DYN_IMG = os.path.join(os.path.dirname(__file__),
 class Stage3:
     """
     Etap 3: transport na mikrotubuli (kinezyna niesie ładunek z etapu 2 i
-    omija przeszkody – skok).
+    omija przeszkody - skok).
     """
 
-    # Białka wiążące mikrotubule (MAP) jako przeszkody – do przeskoczenia
+    # Białka wiążące mikrotubule (MAP) jako przeszkody - do przeskoczenia
     MAPS = [('Tau',  (138,  96, 178)), ('MAP2', ( 90, 140, 200)),
             ('MAP4', (200, 150,  80)), ('DCX',  ( 90, 180, 130))]
     _DYN_EXTRA = 40.0     # dyneina nadjeżdża nieco szybciej niż przewija się tor
@@ -39,7 +39,7 @@ class Stage3:
         self._btn = pygame.Rect(0, 0, 180, 48)
 
         # ładunek niesiony przez kinezynę = ostatni zadokowany w etapie 2
-        # (a gdy etap 3 gramy solo i nic nie ma – domyślny pęcherzyk)
+        # (a gdy etap 3 gramy solo i nic nie ma - domyślny pęcherzyk)
         self._cargo = getattr(state, "last_cargo", None) or ("Pęcherzyk", (134, 190, 240))
 
         self._distance = 0.0
@@ -158,7 +158,7 @@ class Stage3:
 
         if self._distance >= self._next_spawn_distance:
             self._spawn_obstacle(w, h)
-            # odstęp STAŁY w ODLEGŁOŚCI (nie skaluje się z prędkością) — dzięki
+            # odstęp STAŁY w ODLEGŁOŚCI (nie skaluje się z prędkością) - dzięki
             # temu liczba przeszkód na dystans NIE maleje, gdy tor przyspiesza.
             # Przy rosnącej prędkości te same odstępy = coraz krótsze okno reakcji
             # (start ~1.9 s między przeszkodami → ~0.9 s przy maks. prędkości).
@@ -179,7 +179,7 @@ class Stage3:
             item['fx'] -= spd * dt                 # float → płynnie i w synchronie
             r.x = int(round(item['fx']))
             if r.right < 0:
-                continue                           # zniknęła z lewej – usuwamy
+                continue                           # zniknęła z lewej - usuwamy
             remaining.append(item)
 
             if not item["passed"] and r.right < self._runner_x:
@@ -193,7 +193,7 @@ class Stage3:
                     self._game_over = True
             else:
                 box = r
-                if item['kind'] == 'dynein':  # mniejszy hitbox – łatwiej przeskoczyć
+                if item['kind'] == 'dynein':  # mniejszy hitbox - łatwiej przeskoczyć
                     box = pygame.Rect(r.x + int(r.w * 0.16), r.y + int(r.h * 0.34),
                                       int(r.w * 0.68), int(r.h * 0.66))
                 if feet.colliderect(box):
@@ -225,7 +225,7 @@ class Stage3:
 
     #Mikrotubula: dwa rzędy koralików (dimery tubuliny). Kolor zależy od pozycji
     #w ŚWIECIE (nie od pętli), więc każdy koralik trzyma kolor i tor płynnie
-    #jedzie zamiast migotać. `gaps` to uszkodzenia – czysto przerwany tor.
+    #jedzie zamiast migotać. `gaps` to uszkodzenia - czysto przerwany tor.
     def _draw_microtubule(self, w, y, scroll, gaps=()):
         # spokojny tor: lity, matowy podkład (rurka) + duże koraliki o niskim
         # kontraście (bez ostrego obrysu). Mniej męczy wzrok niż gęste, drobne,
@@ -235,7 +235,7 @@ class Stage3:
         light, dark = (160, 197, 166), (138, 182, 150)
         for sx0, sx1 in self._segments(0, w, gaps):
             pygame.draw.rect(self._canvas, base, (int(sx0), y, int(sx1 - sx0), th))
-        # koraliki świata – każdy ma stały kolor i realnie jedzie w lewo
+        # koraliki świata - każdy ma stały kolor i realnie jedzie w lewo
         first = int((scroll - 2 * step) // step)
         last = int((scroll + w + 2 * step) // step)
         for row, ry in enumerate((y + 13, y + 31)):
@@ -246,7 +246,7 @@ class Stage3:
                 col = light if (wi + row) % 2 == 0 else dark
                 pygame.draw.circle(self._canvas, col, (int(sx), ry), r)
 
-    #Czytelny podpis przeszkody – biały tekst na ciemnej „pigułce"
+    #Czytelny podpis przeszkody - biały tekst na ciemnej „pigułce"
     def _label(self, text, cx, cy):
         surf = config.font(16, bold=True).render(text, True, config.WHITE)
         rect = surf.get_rect(center=(cx, cy))
@@ -256,7 +256,7 @@ class Stage3:
         self._canvas.blit(pill, bg.topleft)
         self._canvas.blit(surf, rect)
 
-    #Przeszkoda MAP (Tau / MAP2 / MAP4 / DCX) – kłębek białka na mikrotubuli
+    #Przeszkoda MAP (Tau / MAP2 / MAP4 / DCX) - kłębek białka na mikrotubuli
     def _draw_map(self, rect, name, color):
         bump = tuple(max(0, c - 22) for c in color)
         pygame.draw.rect(self._canvas, color, rect, border_radius=12)
@@ -287,7 +287,7 @@ class Stage3:
                 cv.blit(self._dyn_img, it['rect'].topleft)
                 self._label('Dyneina', it['rect'].centerx, it['rect'].top - 16)
 
-        # kinezyna – kroczy z prędkością zależną od tempa biegu
+        # kinezyna - kroczy z prędkością zależną od tempa biegu
         if self._game_over:
             cv.blit(self._kin_img, (self._runner_x, int(self._runner_y)))
         else:
@@ -295,14 +295,14 @@ class Stage3:
                                   (self._runner_x, int(self._runner_y)),
                                   self._walk_phase, speed=1.0, amp=4.0)
 
-        # niesiony ładunek – siedzi na ogonie (górze) kinezyny i jedzie razem z nią
+        # niesiony ładunek - siedzi na ogonie (górze) kinezyny i jedzie razem z nią
         ctype, ccolor = self._cargo
         draw_cargo(cv, ctype, ccolor,
                    self._runner_x + self._runner_w // 2,
                    int(self._runner_y) + int(self._runner_h * 0.10),
                    scale=0.55)
 
-        # HUD – spójny label lewy-górny: tytuł etapu + Wynik
+        # HUD - spójny label lewy-górny: tytuł etapu + Wynik
         cv.blit(config.font(26, bold=True).render(
             "Etap 3", True, config.TEXT), (30, 12))
         cv.blit(config.font(18, bold=True).render(

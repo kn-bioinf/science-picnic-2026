@@ -1,1 +1,1 @@
-"""Pakiet screens – ekrany poza poziomami (welcome, end, ranking)."""
+"""Pakiet screens - ekrany poza poziomami (welcome, end, ranking)."""

@@ -1,1 +1,1 @@
-"""Pakiet src – główna logika gry KinesinQuest."""
+"""Pakiet src - główna logika gry KinesinQuest."""

@@ -2,10 +2,10 @@
 Reużywalne efekty wizualne dla etapów gry.
 
 Zawiera:
-  * CellBackground – animowane tło „wnętrza komórki": gradient + miękkie
+  * CellBackground - animowane tło „wnętrza komórki": gradient + miękkie
     organelle, dryfujące cząsteczki oraz oddalone mikrotubule z sunącymi po
     nich kinezynami (które niosą różne ładunki). Vibe fabryki.
-  * draw_walking_motor – animacja „kroczenia" kinezyny: rozcina grafikę
+  * draw_walking_motor - animacja „kroczenia" kinezyny: rozcina grafikę
     motora na lewą/prawą główkę i buja je naprzemiennie (hand-over-hand).
 """
 
@@ -20,13 +20,13 @@ class CellBackground:
     """Animowane tło wnętrza komórki z oddalonymi mikrotubulami i kinezynami.
 
     Użycie:
-        bg = CellBackground(W, H, x0, x1)   # x0..x1 – widoczny pas torów
-        bg.draw(surface, t)                 # t – czas w sekundach (rośnie)
+        bg = CellBackground(W, H, x0, x1)   # x0..x1 - widoczny pas torów
+        bg.draw(surface, t)                 # t - czas w sekundach (rośnie)
     """
 
     # tory: (ułamek wysokości, prędkość px/s, liczba kinezyn, kierunek +1/-1)
     LANES = [(0.16, 15, 2, +1), (0.32, 23, 3, -1), (0.49, 18, 2, +1)]
-    MARGIN = 80          # px – tory wystają poza widoczny pas, by ukryć zawijanie
+    MARGIN = 80          # px - tory wystają poza widoczny pas, by ukryć zawijanie
 
     BEAD_L = (206, 224, 210)
     BEAD_D = (182, 208, 190)
@@ -41,7 +41,7 @@ class CellBackground:
         self.x0 = 16 if x0 is None else x0
         self.x1 = (width - 16) if x1 is None else x1
         self._grad = self._make_gradient()
-        # dryfujące cząsteczki/pęcherzyki – „życie" cytoplazmy
+        # dryfujące cząsteczki/pęcherzyki - „życie" cytoplazmy
         rnd = random.Random(20260612)
         self._floaters = [
             (rnd.uniform(0, width), rnd.uniform(0, height),
@@ -107,7 +107,7 @@ class CellBackground:
         cy = int(base - 24 + bob)
         # trzon
         pygame.draw.line(surface, self.KIN_D, (x, base - 3), (x, base - 18), 2)
-        # ładunek – różny w zależności od kinezyny
+        # ładunek - różny w zależności od kinezyny
         cargo = self.CARGOS[seed % len(self.CARGOS)]
         if seed % len(self.CARGOS) == 1:               # mitochondrium (owal)
             pygame.draw.ellipse(surface, cargo, pygame.Rect(x - 8, cy - 4, 16, 9))
@@ -138,7 +138,7 @@ _ANCHOR_OVERRIDES = None
 
 
 def _anchor_overrides():
-    """Ręcznie dostrojone anchory części (anchors.json, px natywne) – te same,
+    """Ręcznie dostrojone anchory części (anchors.json, px natywne) - te same,
     których używa etap 1, więc figury składają się 1:1 jak w grze."""
     global _ANCHOR_OVERRIDES
     if _ANCHOR_OVERRIDES is None:
@@ -155,7 +155,7 @@ def _anchor_overrides():
 def assemble_protein(part_paths):
     """Składa białko motoryczne z części (kolejność OD DOŁU do GÓRY: motor,
     [trzon], ogon) w jeden Surface. Punkty łączenia ('top'/'bottom', px natywne)
-    bierze z anchors.json – dokładnie tak jak etap 1 – a gdy ich brak, używa
+    bierze z anchors.json - dokładnie tak jak etap 1 - a gdy ich brak, używa
     centroidu nieprzezroczystych pikseli. Dzięki temu figury na ekranie wiedzy
     składają się tak samo dobrze jak w rozgrywce.
     """
@@ -214,9 +214,9 @@ def draw_cargo(surface, cargo_type, color, cx, cy, scale=1.0):
 def draw_walking_motor(surface, build_img, rect, cut_x, t, amp=3.0, speed=4.5):
     """Rysuje motor jako dwie główki bujane naprzemiennie (hand-over-hand).
 
-    build_img – grafika motora (już przeskalowana),
-    rect      – docelowa pozycja (jak przy zwykłym blicie),
-    cut_x     – x cięcia w pikselach grafiki (zwykle punkt doczepienia trzonu;
+    build_img - grafika motora (już przeskalowana),
+    rect      - docelowa pozycja (jak przy zwykłym blicie),
+    cut_x     - x cięcia w pikselach grafiki (zwykle punkt doczepienia trzonu;
                 szew chowa się wtedy pod trzonem).
     """
     w, h = build_img.get_size()
@@ -235,14 +235,14 @@ def draw_walking_complete(surface, img, topleft, t,
 
     Obie główki motoryczne są na DOLE obrazka, więc górna część postaci jest
     statyczna, a dolny pasek (rozcięty na lewą/prawą główkę) buja się
-    naprzemiennie – efekt kroczenia. Domyślne `head_frac`/`split_frac` dobrane
+    naprzemiennie - efekt kroczenia. Domyślne `head_frac`/`split_frac` dobrane
     pod heteroKinesin2Complete.png (główki w dolnych ~14%, środek motora ~0.565
     szerokości).
 
-    img      – gotowy obrazek kinezyny (już przeskalowany),
-    topleft  – pozycja lewego-górnego rogu,
-    head_frac – od jakiej części wysokości (od góry) zaczynają się główki,
-    split_frac – x rozdzielenia obu główek (ułamek szerokości).
+    img      - gotowy obrazek kinezyny (już przeskalowany),
+    topleft  - pozycja lewego-górnego rogu,
+    head_frac - od jakiej części wysokości (od góry) zaczynają się główki,
+    split_frac - x rozdzielenia obu główek (ułamek szerokości).
     """
     w, h = img.get_size()
     head_top = max(1, min(h - 1, int(h * head_frac)))
@@ -251,7 +251,7 @@ def draw_walking_complete(surface, img, topleft, t,
     hh = h - head_top
     # górna (statyczna) część postaci
     surface.blit(img.subsurface(pygame.Rect(0, 0, w, head_top)), (ox, oy))
-    # dwie główki na dole – tylko UNOSZONE naprzemiennie (jedna oparta, druga
+    # dwie główki na dole - tylko UNOSZONE naprzemiennie (jedna oparta, druga
     # w górze). Nigdy nie schodzą poniżej linii, więc przy szwie nie ma szpary.
     s = math.sin(t * speed)
     dl = -amp * (0.5 + 0.5 * s)     # lewa: 0 (oparta) .. -amp (uniesiona)

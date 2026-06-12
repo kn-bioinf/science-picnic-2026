@@ -9,7 +9,7 @@ _STAGES = {1: Stage1, 2: Stage2, 3: Stage3}
 
 class Level1Controller:
     """
-    Poziom 1 – kinezyna na mikrotubuli.
+    Poziom 1 - kinezyna na mikrotubuli.
 
     mode='full'   : etapy 1 -> 2 -> 3, sumuje wyniki, na końcu manager.finish_full.
     mode='single' : tylko wskazany etap, po przejściu manager.finish_single (-> menu).
@@ -17,9 +17,9 @@ class Level1Controller:
     Dodatkowo: dwa dyskretne przyciski adminowe w prawym dolnym rogu okna,
     aktywne przez cały czas rozgrywki (także na ekranie przegranej/wygranej,
     dopóki nie klikniemy „Dalej"):
-        Restart – zaczyna od nowa BIEŻĄCY etap (w trybie pełnym zachowuje wyniki
+        Restart - zaczyna od nowa BIEŻĄCY etap (w trybie pełnym zachowuje wyniki
                   wcześniej ukończonych etapów),
-        Quit    – wychodzi z rozgrywki do menu.
+        Quit    - wychodzi z rozgrywki do menu.
     """
 
     def __init__(self, screen, state, manager, mode="full", stage=1):
@@ -39,7 +39,7 @@ class Level1Controller:
 
     def _restart(self):
         """Restart bieżącego etapu od początku. Wyniki wcześniej ukończonych
-        etapów (self._scores) zostają nietknięte – wracamy tylko do tego etapu,
+        etapów (self._scores) zostają nietknięte - wracamy tylko do tego etapu,
         w którym właśnie jesteśmy."""
         self._start(self._current)
 

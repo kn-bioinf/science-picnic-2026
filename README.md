@@ -18,10 +18,10 @@ Ekran końcowy + Ranking
 
 ## Struktura kodu etapów
 - Pliki `src/levels/level1/stage1.py`, `stage2.py`, `stage3.py` to szablony etapów. Każdy etap powinien implementować:
-	- `handle_event(self, e)` — reaguj na input (klawiatura/mysz), wywołuj `self.next(score)` gdy etap się kończy,
-	- `update(self, dt)` — logika/animacje (wywoływane co klatkę),
-	- `draw(self)` — rysowanie na `self.screen`.
-- Globalny wynik jest przechowywany w `GameState.score`; kontroler poziomu sumuje wartości przesłane przez `self.next(score)`. Co do implementacji wyniku możemy się zastanowić tak, aby wynik pomiędzy etapami był w miarę spójny i skalowalny.
+	- `handle_event(self, e)` - reaguj na input (klawiatura/mysz), wywołuj `self.next(score)` gdy etap się kończy,
+	- `update(self, dt)` - logika/animacje (wywoływane co klatkę),
+	- `draw(self)` - rysowanie na `self.screen`.
+- Każdy etap przekazuje swój wynik przez `self.next(score)`. `Level1Controller` zbiera wyniki kolejnych etapów, a `GameManager.finish_full` sumuje je do `GameState.score` (w trybie pojedynczego etapu zapisywany jest tylko wynik danego etapu). Konwencja wyniku jest tak dobrana, by był w miarę spójny i porównywalny między etapami (szczegóły w docstringu `GameState`).
 
 ## Wymagania
 

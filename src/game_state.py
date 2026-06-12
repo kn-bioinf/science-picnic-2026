@@ -10,9 +10,9 @@ class GameState:
     Każda kategoria to lista wpisów {"name", "score"} (malejąco, top 10).
 
     Konwencja wyników (porównywalna między etapami):
-        etap 1 = 20 - liczba pomyłek (min 0)   – składanie kinezyny
-        etap 2 = liczba udanych dokowań        – dokowanie ładunku
-        etap 3 = liczba pokonanych przeszkód   – bieg na mikrotubuli
+        etap 1 = 20 - liczba pomyłek (min 0)   - składanie kinezyny
+        etap 2 = liczba udanych dokowań        - dokowanie ładunku
+        etap 3 = liczba pokonanych przeszkód   - bieg na mikrotubuli
         total  = suma z pełnej rozgrywki (1->2->3)
     """
 

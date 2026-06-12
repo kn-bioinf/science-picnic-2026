@@ -8,7 +8,7 @@ _STAGE_NAMES = {1: "Etap 1 (składanie)", 2: "Etap 2 (dokowanie)",
 class EndScreen:
     """Ekran końcowy pełnej gry: wynik łączny + rozbicie na etapy.
 
-    Zapis do rankingu wykonuje GameManager.finish_full — tu tylko wyświetlamy.
+    Zapis do rankingu wykonuje GameManager.finish_full - tu tylko wyświetlamy.
     """
 
     def __init__(self, screen, state, manager):
@@ -66,5 +66,5 @@ class EndScreen:
         br = config.font(18).render("Ranking", True, config.TEXT)
         self.screen.blit(br, br.get_rect(center=self._btn_ranking.center))
 
-        hint = config.font(15).render("Enter — menu", True, config.MUTED)
+        hint = config.font(15).render("Enter - menu", True, config.MUTED)
         self.screen.blit(hint, hint.get_rect(center=(cx, h - 30)))

@@ -69,7 +69,7 @@ class RankingScreen:
         rows = self._rankings.get(cat, [])
         y = 176
         if not rows:
-            empty = config.font(22).render("Brak wyników — zagraj!", True, config.MUTED)
+            empty = config.font(22).render("Brak wyników - zagraj!", True, config.MUTED)
             self.screen.blit(empty, empty.get_rect(center=(cx, y + 40)))
         else:
             for i, r in enumerate(rows):
@@ -89,6 +89,6 @@ class RankingScreen:
         pygame.draw.rect(self.screen, config.ACCENT, self._btn, border_radius=8)
         b = config.font(20).render("← Menu", True, config.WHITE)
         self.screen.blit(b, b.get_rect(center=self._btn.center))
-        hint = config.font(14).render("← → zmiana zakładki   ·   Enter/Esc — menu",
+        hint = config.font(14).render("← → zmiana zakładki   ·   Enter/Esc - menu",
                                       True, config.MUTED)
         self.screen.blit(hint, hint.get_rect(center=(cx, h - 24)))

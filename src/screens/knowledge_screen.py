@@ -24,19 +24,19 @@ _FIGURES = [
 ]
 
 _PARAS = [
-    ("Białka motoryczne — komórkowi tragarze",
+    ("Białka motoryczne - komórkowi tragarze",
      "Wnętrze komórki to ruchliwe miasto, w którym wciąż trzeba coś dowieźć na "
-     "miejsce. Robią to białka motoryczne — maleńkie nanosilniki, które spalają "
+     "miejsce. Robią to białka motoryczne - maleńkie nanosilniki, które spalają "
      "paliwo (ATP, komórkową „baterię\") i krok po kroku przenoszą ładunki po "
      "wewnętrznych torach."),
     ("Tory i trzy rodziny",
-     "Te tory to cienkie rurki zwane mikrotubulami oraz włókna aktyny — komórkowe "
+     "Te tory to cienkie rurki zwane mikrotubulami oraz włókna aktyny - komórkowe "
      "„szyny\". Po mikrotubulach chodzą kinezyna i dyneina (w przeciwne strony), a "
      "po aktynie miozyna. My zajmiemy się kinezyną."),
     ("Co i dokąd niesie kinezyna",
      "Kinezyna „idzie\" na dwóch główkach-nóżkach i ciągnie ładunek: pęcherzyki "
      "(błonowe „paczki\"), mitochondria (elektrownie) czy lizosomy (śmietniki). "
-     "Pracuje w prawie każdej komórce — zwykle wiezie ładunek od jej środka ku "
+     "Pracuje w prawie każdej komórce - zwykle wiezie ładunek od jej środka ku "
      "obrzeżom, tam gdzie jest właśnie potrzebny."),
     ("W tej grze",
      "Prześledzimy całą drogę kinezyny: od jej powstania (złożenie z części), "
@@ -136,5 +136,5 @@ class KnowledgeScreen:
         pygame.draw.rect(self.screen, config.ACCENT, self._btn, border_radius=8)
         b = config.font(20).render("← Powrót", True, config.WHITE)
         self.screen.blit(b, b.get_rect(center=self._btn.center))
-        hint = config.font(14).render("Enter / Esc — powrót", True, config.MUTED)
+        hint = config.font(14).render("Enter / Esc - powrót", True, config.MUTED)
         self.screen.blit(hint, hint.get_rect(midleft=(self._btn.right + 16, self._btn.centery)))

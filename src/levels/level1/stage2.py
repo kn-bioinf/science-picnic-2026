@@ -1,4 +1,4 @@
-# Etap 2: dokowanie ładunku (refleksówka – SPACE upuszcza ładunek na ogon kinezyny).
+# Etap 2: dokowanie ładunku (refleksówka - SPACE upuszcza ładunek na ogon kinezyny).
 # Cała scena rysowana na stałej kanwie 1280x720 i skalowana do okna (spójnie z 1 i 3).
 
 import os
@@ -15,7 +15,7 @@ _KIN_IMG = os.path.join(os.path.dirname(__file__),
 class Stage2:
     """Etap 2: dokowanie ładunku. self.next(score) gdy etap skończony."""
 
-    # Ładunki kinezyny – wyłącznie z komórek ZWIERZĘCYCH
+    # Ładunki kinezyny - wyłącznie z komórek ZWIERZĘCYCH
     OBJECTS = [
         {"name": "Pęcherzyk", "color": (134, 190, 240)},
         {"name": "Mitochondrium", "color": (220, 140, 70)},
@@ -65,7 +65,7 @@ class Stage2:
         self._direction = random.choice([-1, 1])
         self._released = self._hit = self._failed = False
         self._mt_y = int(h * 0.86)
-        kin_h = int(h * 0.40)      # ~15% większa kinezyna — łatwiej trafić w ogon
+        kin_h = int(h * 0.40)      # ~15% większa kinezyna - łatwiej trafić w ogon
         scale = kin_h / self._kin_raw.get_height()
         self._kin_img = pygame.transform.smoothscale(
             self._kin_raw,
@@ -150,7 +150,7 @@ class Stage2:
             if pocket.collidepoint(int(self._pos[0]), int(self._pos[1])):
                 self._hit = True
                 self._score += 1
-                # zapamiętaj zadokowany ładunek – etap 3 (transport) go poniesie
+                # zapamiętaj zadokowany ładunek - etap 3 (transport) go poniesie
                 self.state.last_cargo = (self._object_type, self._object_color)
                 self._setup_board()
             elif self._pos[1] > h + 20:
@@ -196,7 +196,7 @@ class Stage2:
 
         self._draw_object(int(self._pos[0]), int(self._pos[1]))
 
-        # tytuł w DWÓCH liniach ("Etap 2" / nazwa) – spójnie z etapem 1
+        # tytuł w DWÓCH liniach ("Etap 2" / nazwa) - spójnie z etapem 1
         cv.blit(config.font(26, bold=True).render(
             "Etap 2", True, config.TEXT), (30, 12))
         cv.blit(config.font(18, bold=True).render(
@@ -204,7 +204,7 @@ class Stage2:
         cv.blit(config.font(24, bold=True).render(
             f"Wynik: {self._score}", True, config.ACCENT), (30, 70))
         cv.blit(config.font(20).render(
-            "SPACE — zwolnij ładunek nad ogonem kinezyny", True, config.MUTED), (30, 104))
+            "SPACE - zwolnij ładunek nad ogonem kinezyny", True, config.MUTED), (30, 104))
         cv.blit(config.font(18).render(
             f"Ładunek: {self._object_type}", True, config.ACCENT), (30, 132))
 
@@ -221,7 +221,7 @@ class Stage2:
             pygame.draw.rect(cv, config.ACCENT, self._btn, border_radius=8)
             bl = config.font(22, bold=True).render("Dalej", True, config.WHITE)
             cv.blit(bl, bl.get_rect(center=self._btn.center))
-            hint = config.font(15).render("Enter — dalej", True, (210, 215, 230))
+            hint = config.font(15).render("Enter - dalej", True, (210, 215, 230))
             cv.blit(hint, hint.get_rect(center=(w // 2, h // 2 + 116)))
 
         # skaluj kanwę do okna

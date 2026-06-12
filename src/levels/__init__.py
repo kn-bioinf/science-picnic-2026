@@ -1,1 +1,1 @@
-"""Pakiet levels – poziomy gry."""
+"""Pakiet levels - poziomy gry."""
