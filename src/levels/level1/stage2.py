@@ -1,8 +1,15 @@
-# TODO: Zaimplementuj ten etap.
-# Gdy etap sie skonczy, wywolaj: self.next(score)
+#TODO: komentarze w kodzie, oprawa graficzna, zmienienie upuszczania żeby było bardziej smooth;
 
+import os
+import math
+import random
 import pygame
 import src.config as config
+from src.effects import draw_walking_complete, CellBackground
+
+_KIN_IMG = os.path.join(os.path.dirname(__file__),
+                        '..', '..', '..', 'assets', 'images',
+                        'heteroKinesin2Complete.png')
 
 
 class Stage2:
@@ -13,26 +20,225 @@ class Stage2:
         __init__(screen, state, next_fn)
         self.next(score: int)  – wywolaj gdy etap skonczony
     """
+    #Definiujemy ligandy
+    OBJECTS = [
+        {"name": "Pęcherzyk", "color": (134, 190, 240)},
+        {"name": "Mitochondrium", "color": (220, 140, 70)},
+        {"name": "Lizosom", "color": (175, 95, 200)},
+        {"name": "Chloroplast", "color": (80, 175, 95)},
+    ]
 
+    #Ustawienia przy inicjowaniu
     def __init__(self, screen, state, next_fn):
         self.screen = screen
-        self.state  = state
-        self.next   = next_fn            # wywolaj: self.next(score)
-        self._btn   = pygame.Rect(0, 0, 160, 44)
+        self.state = state
+        self.next = next_fn
+        self._btn = pygame.Rect(0, 0, 180, 48)
 
+        self._line_y = 0
+        self._min_x = 0
+        self._max_x = 0
+        self._anchor_x = 0
+        self._anchor_y = 0
+        self._pos = [0.0, 0.0]
+        self._vel = [0.0, 0.0]
+        self._direction = 1
+        self._line_speed = 280.0
+        self._gravity = 1400.0
+
+        self._released = False
+        self._hit = False
+        self._failed = False
+        self._score = 0
+
+        self._target = None
+        self._object_type = None
+        self._object_color = None
+
+        # statyczna grafika kinezyny stojącej na mikrotubuli
+        self._kin_raw = pygame.image.load(_KIN_IMG).convert_alpha()
+        self._kin_img = None
+        self._kin_pos = (0, 0)
+        self._mt_y = 0
+        self._t = 0.0
+        self._bg = None            # animowane tło (tworzone na rozmiar okna)
+        self._setup_board()
+
+    #Ustawienia planszy, pozycji i celu
+    def _setup_board(self):
+        w, h = config.get_size()
+        self._line_y = int(h * 0.20)
+        self._min_x = int(w * 0.14)
+        self._max_x = int(w * 0.86)
+        self._direction = random.choice([-1, 1])
+        self._released = False
+        self._hit = False
+        self._failed = False
+        # kinezyna na mikrotubuli; od poziomu 10 zaczyna po niej chodzić
+        self._mt_y = int(h * 0.86)
+        kin_h = int(h * 0.35)
+        scale = kin_h / self._kin_raw.get_height()
+        self._kin_img = pygame.transform.smoothscale(
+            self._kin_raw,
+            (max(1, int(self._kin_raw.get_width() * scale)), kin_h))
+        self._kin_overlap = max(6, int(h * 0.02))   # stópki wchodzą w mikrotubulę
+        self._kin_speed = 90.0                       # wolniej niż ligand
+        self._kin_dir = random.choice([-1, 1])
+        self._kin_x = float(w * random.uniform(0.30, 0.70))
+        self._refresh_kin()
+
+        self._choose_object()
+        self._anchor_x = int(w * random.uniform(0.35, 0.65))
+        self._anchor_y = self._line_y
+        self._pos = [float(self._anchor_x), float(self._anchor_y)]
+        self._vel = [0.0, 0.0]
+
+    #Wybór ligandu do upuszczenia
+    def _choose_object(self):
+        choice = random.choice(self.OBJECTS)
+        self._object_type = choice["name"]
+        self._object_color = choice["color"]
+
+    #Przeliczenie pozycji kinezyny i celu dokowania z aktualnego _kin_x
+    def _refresh_kin(self):
+        kw, kh = self._kin_img.get_size()
+        top = self._mt_y - kh + self._kin_overlap
+        self._kin_pos = (int(self._kin_x - kw / 2), top)
+        self._target = pygame.Rect(0, 0, max(70, int(kw * 0.7)), 54)
+        self._target.center = (int(self._kin_x), top + int(kh * 0.12))
+
+    #Obsługa zdarzeń - spacja do upuszczenia, kliknięcie w przycisk po pominięciu celu
     def handle_event(self, e):
-        if e.type == pygame.MOUSEBUTTONDOWN and self._btn.collidepoint(e.pos):
-            self.next(0)                 # TODO: przekaz prawdziwy wynik
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE and not self._released and not self._hit and not self._failed:
+            self._released = True
+            self._vel = [0.0, 0.0]
+        if e.type == pygame.MOUSEBUTTONDOWN and self._failed and self._btn.collidepoint(e.pos):
+            self.next(self._score)
 
+    #Aktualizacja pozycji ligandu, sprawdzanie kolizji z celem i obsługa końca gry
     def update(self, dt):
-        pass                             # TODO
+        self._t += dt
+        if self._hit or self._failed:
+            return
 
+        w, h = config.get_size()
+        # od poziomu 10 kinezyna chodzi po mikrotubuli (wolno) – ruchomy cel
+        if self._score >= 10:
+            lo, hi = w * 0.16, w * 0.84
+            self._kin_x += self._kin_dir * self._kin_speed * dt
+            if self._kin_x < lo:
+                self._kin_x, self._kin_dir = lo, 1
+            elif self._kin_x > hi:
+                self._kin_x, self._kin_dir = hi, -1
+            self._refresh_kin()
+
+        if not self._released:
+            new_x = self._anchor_x + self._direction * (self._line_speed + (self._score*14.0)) * dt
+            if new_x < self._min_x:
+                new_x = self._min_x
+                self._direction = 1
+            elif new_x > self._max_x:
+                new_x = self._max_x
+                self._direction = -1
+            self._anchor_x = new_x
+            self._pos[0] = self._anchor_x
+            self._pos[1] = self._anchor_y
+        else:
+            self._vel[1] += self._gravity * dt
+            self._pos[0] += self._vel[0] * dt
+            self._pos[1] += self._vel[1] * dt
+
+            if self._target.collidepoint(int(self._pos[0]), int(self._pos[1])):
+                self._hit = True
+                self._score += 1
+                self._setup_board()
+            elif self._pos[1] > h + 20:
+                self._failed = True
+
+    #Rysowanie ligandu
+    def _draw_object(self, x, y):
+        color = self._object_color
+        if self._object_type == "Pęcherzyk":
+            pygame.draw.circle(self.screen, color, (x, y), 20)
+            pygame.draw.circle(self.screen, (255, 255, 255), (x - 6, y - 6), 6)
+            pygame.draw.circle(self.screen, (255, 255, 255), (x + 8, y - 8), 4)
+        elif self._object_type == "Mitochondrium":
+            pygame.draw.ellipse(self.screen, color, (x - 24, y - 16, 48, 32))
+            for offset in (-12, -6, 0, 6, 12):
+                pygame.draw.line(self.screen, (160, 90, 50), (x + offset, y - 10), (x + offset, y + 10), 3)
+        elif self._object_type == "Lizosom":
+            pygame.draw.circle(self.screen, color, (x, y), 20)
+            for angle in range(0, 360, 45):
+                dx = int(12 * math.cos(math.radians(angle)))
+                dy = int(12 * math.sin(math.radians(angle)))
+                pygame.draw.circle(self.screen, (220, 170, 235), (x + dx, y + dy), 6)
+        elif self._object_type == "Chloroplast":
+            pygame.draw.ellipse(self.screen, color, (x - 26, y - 16, 52, 32))
+            for pos in range(-18, 19, 9):
+                pygame.draw.line(self.screen, (50, 120, 55), (x + pos, y - 12), (x + pos + 4, y + 12), 4)
+        label = config.font(16, bold=True).render(self._object_type, True, config.TEXT)
+        self.screen.blit(label, label.get_rect(midtop=(x, y + 22)))
+
+    #Mikrotubula – dwa rzędy naprzemiennych koralików (jak w etapie 1)
+    def _draw_microtubule(self, x0, x1, y):
+        r = 13
+        step = r * 2 - 4
+        light, dark = (150, 205, 140), (70, 150, 85)
+        for row, ry in enumerate((y + r, y + r + step - 3)):
+            x = x0 + r + (row * (step // 2))
+            i = 0
+            while x < x1 - r:
+                col = light if (i + row) % 2 == 0 else dark
+                pygame.draw.circle(self.screen, col, (int(x), ry), r)
+                pygame.draw.circle(self.screen, dark, (int(x), ry), r, 1)
+                x += step
+                i += 1
+
+    #Rysowanie planszy, celu i informacji o grze
     def draw(self):
         w, h = config.get_size()
-        self.screen.fill(config.BG)
-        t = config.font(36, bold=True).render("Stage2", True, config.TEXT)
-        self.screen.blit(t, t.get_rect(center=(w // 2, h // 2)))
-        self._btn.center = (w // 2, h - 90)
-        pygame.draw.rect(self.screen, config.ACCENT, self._btn, border_radius=8)
-        b = config.font(20).render("Dalej ->", True, config.WHITE)
-        self.screen.blit(b, b.get_rect(center=self._btn.center))
+        if self._bg is None or self._bg.w != w or self._bg.h != h:
+            self._bg = CellBackground(w, h)
+        self._bg.draw(self.screen, self._t)
+
+        pygame.draw.line(self.screen, config.MUTED, (self._min_x, self._line_y), (self._max_x, self._line_y), 4)
+        pygame.draw.circle(self.screen, config.ACCENT, (self._min_x, self._line_y), 6)
+        pygame.draw.circle(self.screen, config.ACCENT, (self._max_x, self._line_y), 6)
+
+        # mikrotubula + kinezyna (statyczna; od poziomu 10 kroczy po torze)
+        self._draw_microtubule(0, w, self._mt_y)
+        if self._score >= 10:
+            draw_walking_complete(self.screen, self._kin_img, self._kin_pos, self._t)
+        else:
+            self.screen.blit(self._kin_img, self._kin_pos)
+        # delikatny wskaźnik miejsca dokowania (ogon kinezyny)
+        pygame.draw.ellipse(self.screen, config.ACCENT, self._target, 2)
+
+        self._draw_object(int(self._pos[0]), int(self._pos[1]))
+
+        title = config.font(36, bold=True).render("Dokowanie ładunku", True, config.TEXT)
+        self.screen.blit(title, (30, 30))
+        inst = config.font(22).render("Naciśnij SPACE, aby zwolnić obiekt nad kinezyną.", True, config.MUTED)
+        self.screen.blit(inst, (30, 74))
+        object_text = config.font(24).render(f"Ligand: {self._object_type}", True, config.ACCENT)
+        self.screen.blit(object_text, (30, 110))
+        score_text = config.font(22).render(f"Wynik: {self._score}", True, config.ACCENT)
+        self.screen.blit(score_text, (30, 144))
+
+        if self._hit or self._failed:
+            overlay = pygame.Surface((w, h), pygame.SRCALPHA)
+            overlay.fill((20, 20, 45, 170))
+            self.screen.blit(overlay, (0, 0))
+
+            text = "Cel trafiony!" if self._hit else f"Nie trafiłeś w kieszeń."
+            color = config.ACCENT if self._hit else config.MUTED
+            result = config.font(40, bold=True).render(text, True, color)
+            self.screen.blit(result, result.get_rect(center=(w // 2, h // 2 - 40)))
+
+            detail = config.font(24).render("Kliknij Dalej, aby kontynuować.", True, config.WHITE)
+            self.screen.blit(detail, detail.get_rect(center=(w // 2, h // 2 + 10)))
+
+            self._btn.center = (w // 2, h // 2 + 96)
+            pygame.draw.rect(self.screen, config.ACCENT, self._btn, border_radius=8)
+            button_label = config.font(22, bold=True).render("Dalej", True, config.WHITE)
+            self.screen.blit(button_label, button_label.get_rect(center=self._btn.center))
