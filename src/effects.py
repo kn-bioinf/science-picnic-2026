@@ -131,3 +131,37 @@ def draw_walking_motor(surface, build_img, rect, cut_x, t, amp=3.0, speed=4.5):
     dl = math.sin(t * speed) * amp
     surface.blit(left,  (rect.x, int(rect.y + dl)))
     surface.blit(right, (rect.x + cut, int(rect.y - dl)))
+
+
+def draw_walking_complete(surface, img, topleft, t,
+                          head_frac=0.86, split_frac=0.565,
+                          amp=3.0, speed=4.5):
+    """Animuje GOTOWĄ kinezynę z jednego obrazka (np. heteroKinesin2Complete.png).
+
+    Obie główki motoryczne są na DOLE obrazka, więc górna część postaci jest
+    statyczna, a dolny pasek (rozcięty na lewą/prawą główkę) buja się
+    naprzemiennie – efekt kroczenia. Domyślne `head_frac`/`split_frac` dobrane
+    pod heteroKinesin2Complete.png (główki w dolnych ~14%, środek motora ~0.565
+    szerokości).
+
+    img      – gotowy obrazek kinezyny (już przeskalowany),
+    topleft  – pozycja lewego-górnego rogu,
+    head_frac – od jakiej części wysokości (od góry) zaczynają się główki,
+    split_frac – x rozdzielenia obu główek (ułamek szerokości).
+    """
+    w, h = img.get_size()
+    head_top = max(1, min(h - 1, int(h * head_frac)))
+    split_x  = max(1, min(w - 1, int(w * split_frac)))
+    ox, oy = int(topleft[0]), int(topleft[1])
+    hh = h - head_top
+    # górna (statyczna) część postaci
+    surface.blit(img.subsurface(pygame.Rect(0, 0, w, head_top)), (ox, oy))
+    # dwie główki na dole – tylko UNOSZONE naprzemiennie (jedna oparta, druga
+    # w górze). Nigdy nie schodzą poniżej linii, więc przy szwie nie ma szpary.
+    s = math.sin(t * speed)
+    dl = -amp * (0.5 + 0.5 * s)     # lewa: 0 (oparta) .. -amp (uniesiona)
+    dr = -amp * (0.5 - 0.5 * s)     # prawa: w przeciwfazie
+    left  = img.subsurface(pygame.Rect(0, head_top, split_x, hh))
+    right = img.subsurface(pygame.Rect(split_x, head_top, w - split_x, hh))
+    surface.blit(left,  (ox, int(oy + head_top + dl)))
+    surface.blit(right, (ox + split_x, int(oy + head_top + dr)))
