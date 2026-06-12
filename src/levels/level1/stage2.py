@@ -1,9 +1,15 @@
 #TODO: komentarze w kodzie, oprawa graficzna, zmienienie upuszczania żeby było bardziej smooth;
 
+import os
 import math
 import random
 import pygame
 import src.config as config
+from src.effects import draw_walking_complete, CellBackground
+
+_KIN_IMG = os.path.join(os.path.dirname(__file__),
+                        '..', '..', '..', 'assets', 'images',
+                        'heteroKinesin2Complete.png')
 
 
 class Stage2:
@@ -48,6 +54,14 @@ class Stage2:
         self._target = None
         self._object_type = None
         self._object_color = None
+
+        # statyczna grafika kinezyny stojącej na mikrotubuli
+        self._kin_raw = pygame.image.load(_KIN_IMG).convert_alpha()
+        self._kin_img = None
+        self._kin_pos = (0, 0)
+        self._mt_y = 0
+        self._t = 0.0
+        self._bg = None            # animowane tło (tworzone na rozmiar okna)
         self._setup_board()
 
     #Ustawienia planszy, pozycji i celu
@@ -60,7 +74,18 @@ class Stage2:
         self._released = False
         self._hit = False
         self._failed = False
-        self._target = pygame.Rect(int(w * random.uniform(0.25, 0.75)), int(h * 0.68), 140, 46)
+        # kinezyna na mikrotubuli; od poziomu 10 zaczyna po niej chodzić
+        self._mt_y = int(h * 0.86)
+        kin_h = int(h * 0.35)
+        scale = kin_h / self._kin_raw.get_height()
+        self._kin_img = pygame.transform.smoothscale(
+            self._kin_raw,
+            (max(1, int(self._kin_raw.get_width() * scale)), kin_h))
+        self._kin_overlap = max(6, int(h * 0.02))   # stópki wchodzą w mikrotubulę
+        self._kin_speed = 90.0                       # wolniej niż ligand
+        self._kin_dir = random.choice([-1, 1])
+        self._kin_x = float(w * random.uniform(0.30, 0.70))
+        self._refresh_kin()
 
         self._choose_object()
         self._anchor_x = int(w * random.uniform(0.35, 0.65))
@@ -74,6 +99,14 @@ class Stage2:
         self._object_type = choice["name"]
         self._object_color = choice["color"]
 
+    #Przeliczenie pozycji kinezyny i celu dokowania z aktualnego _kin_x
+    def _refresh_kin(self):
+        kw, kh = self._kin_img.get_size()
+        top = self._mt_y - kh + self._kin_overlap
+        self._kin_pos = (int(self._kin_x - kw / 2), top)
+        self._target = pygame.Rect(0, 0, max(70, int(kw * 0.7)), 54)
+        self._target.center = (int(self._kin_x), top + int(kh * 0.12))
+
     #Obsługa zdarzeń - spacja do upuszczenia, kliknięcie w przycisk po pominięciu celu
     def handle_event(self, e):
         if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE and not self._released and not self._hit and not self._failed:
@@ -84,10 +117,21 @@ class Stage2:
 
     #Aktualizacja pozycji ligandu, sprawdzanie kolizji z celem i obsługa końca gry
     def update(self, dt):
+        self._t += dt
         if self._hit or self._failed:
             return
 
         w, h = config.get_size()
+        # od poziomu 10 kinezyna chodzi po mikrotubuli (wolno) – ruchomy cel
+        if self._score >= 10:
+            lo, hi = w * 0.16, w * 0.84
+            self._kin_x += self._kin_dir * self._kin_speed * dt
+            if self._kin_x < lo:
+                self._kin_x, self._kin_dir = lo, 1
+            elif self._kin_x > hi:
+                self._kin_x, self._kin_dir = hi, -1
+            self._refresh_kin()
+
         if not self._released:
             new_x = self._anchor_x + self._direction * (self._line_speed + (self._score*14.0)) * dt
             if new_x < self._min_x:
@@ -135,22 +179,44 @@ class Stage2:
         label = config.font(16, bold=True).render(self._object_type, True, config.TEXT)
         self.screen.blit(label, label.get_rect(midtop=(x, y + 22)))
 
+    #Mikrotubula – dwa rzędy naprzemiennych koralików (jak w etapie 1)
+    def _draw_microtubule(self, x0, x1, y):
+        r = 13
+        step = r * 2 - 4
+        light, dark = (150, 205, 140), (70, 150, 85)
+        for row, ry in enumerate((y + r, y + r + step - 3)):
+            x = x0 + r + (row * (step // 2))
+            i = 0
+            while x < x1 - r:
+                col = light if (i + row) % 2 == 0 else dark
+                pygame.draw.circle(self.screen, col, (int(x), ry), r)
+                pygame.draw.circle(self.screen, dark, (int(x), ry), r, 1)
+                x += step
+                i += 1
+
     #Rysowanie planszy, celu i informacji o grze
     def draw(self):
         w, h = config.get_size()
-        self.screen.fill(config.BG)
+        if self._bg is None or self._bg.w != w or self._bg.h != h:
+            self._bg = CellBackground(w, h)
+        self._bg.draw(self.screen, self._t)
 
         pygame.draw.line(self.screen, config.MUTED, (self._min_x, self._line_y), (self._max_x, self._line_y), 4)
         pygame.draw.circle(self.screen, config.ACCENT, (self._min_x, self._line_y), 6)
         pygame.draw.circle(self.screen, config.ACCENT, (self._max_x, self._line_y), 6)
 
-        pygame.draw.rect(self.screen, config.ACCENT, self._target, border_radius=16)
-        kin = config.font(20, bold=True).render("Kinezyna", True, config.WHITE)
-        self.screen.blit(kin, kin.get_rect(center=self._target.center))
+        # mikrotubula + kinezyna (statyczna; od poziomu 10 kroczy po torze)
+        self._draw_microtubule(0, w, self._mt_y)
+        if self._score >= 10:
+            draw_walking_complete(self.screen, self._kin_img, self._kin_pos, self._t)
+        else:
+            self.screen.blit(self._kin_img, self._kin_pos)
+        # delikatny wskaźnik miejsca dokowania (ogon kinezyny)
+        pygame.draw.ellipse(self.screen, config.ACCENT, self._target, 2)
 
         self._draw_object(int(self._pos[0]), int(self._pos[1]))
 
-        title = config.font(36, bold=True).render("Docking ATP", True, config.TEXT)
+        title = config.font(36, bold=True).render("Dokowanie ładunku", True, config.TEXT)
         self.screen.blit(title, (30, 30))
         inst = config.font(22).render("Naciśnij SPACE, aby zwolnić obiekt nad kinezyną.", True, config.MUTED)
         self.screen.blit(inst, (30, 74))
