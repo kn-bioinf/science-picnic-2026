@@ -50,19 +50,21 @@ class CellBackground:
         ]
 
     def _make_gradient(self):
-        s = pygame.Surface((self.w, self.h))
+        # buduj na powierzchni z jawną alfą, potem .convert() do formatu ekranu
+        # (inaczej przy rysowaniu wprost na ekran bywają czarne artefakty)
+        s = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
         for y in range(self.h):
             f = y / self.h
-            s.fill(tuple(int(self.TOP[i] + (self.BOT[i] - self.TOP[i]) * f)
-                         for i in range(3)),
-                   pygame.Rect(0, y, self.w, 1))
+            col = tuple(int(self.TOP[i] + (self.BOT[i] - self.TOP[i]) * f)
+                        for i in range(3))
+            s.fill((*col, 255), pygame.Rect(0, y, self.w, 1))
         for fx, fy, r, col in [(0.34, 0.35, 190, (224, 236, 230)),
                                (0.59, 0.65, 240, (220, 232, 242)),
                                (0.50, 0.17, 150, (230, 238, 232))]:
             blob = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
             pygame.draw.circle(blob, (*col, 90), (r, r), r)
             s.blit(blob, (int(self.w * fx) - r, int(self.h * fy) - r))
-        return s
+        return s.convert()
 
     def draw(self, surface, t):
         surface.blit(self._grad, (0, 0))
