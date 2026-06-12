@@ -1,4 +1,5 @@
-# Bieg na mikrotubuli: omijaj przeszkody (MAP-y), luki w torze i dyneinę.
+# Transport na mikrotubuli: kinezyna niesie ładunek z etapu 2 i omija przeszkody
+# (MAP-y), luki w torze i dyneinę.
 # Sterowanie: ↑ / SPACE = skok, ↓ = szybki opad.
 #
 # Cała scena rysowana jest na stałej kanwie 1280x720 (config.W x H) i dopiero
@@ -9,7 +10,7 @@ import os
 import random
 import pygame
 import src.config as config
-from src.effects import CellBackground, draw_walking_complete
+from src.effects import CellBackground, draw_walking_complete, draw_cargo
 
 _KIN_IMG = os.path.join(os.path.dirname(__file__),
                         '..', '..', '..', 'assets', 'images',
@@ -21,7 +22,8 @@ _DYN_IMG = os.path.join(os.path.dirname(__file__),
 
 class Stage3:
     """
-    Etap 3: bieg na mikrotubuli (runner – omijaj przeszkody, skok).
+    Etap 3: transport na mikrotubuli (kinezyna niesie ładunek z etapu 2 i
+    omija przeszkody – skok).
     """
 
     # Białka wiążące mikrotubule (MAP) jako przeszkody – do przeskoczenia
@@ -35,6 +37,10 @@ class Stage3:
         self.state = state
         self.next = next_fn
         self._btn = pygame.Rect(0, 0, 180, 48)
+
+        # ładunek niesiony przez kinezynę = ostatni zadokowany w etapie 2
+        # (a gdy etap 3 gramy solo i nic nie ma – domyślny pęcherzyk)
+        self._cargo = getattr(state, "last_cargo", None) or ("Pęcherzyk", (134, 190, 240))
 
         self._distance = 0.0
         self._score = 0
@@ -107,6 +113,8 @@ class Stage3:
             elif e.key == pygame.K_DOWN:
                 if not self._game_over and self._runner_y < self._rest_y:
                     self._vy = max(self._vy, 1600.0)
+            elif e.key == pygame.K_RETURN and self._game_over:
+                self.next(self._score)          # Enter = Dalej po końcu biegu
         if (e.type == pygame.MOUSEBUTTONDOWN and self._game_over
                 and self._btn.collidepoint(self._to_canvas(e.pos))):
             self.next(self._score)
@@ -150,10 +158,11 @@ class Stage3:
 
         if self._distance >= self._next_spawn_distance:
             self._spawn_obstacle(w, h)
-            crowd = max(0.65, 1.0 - self._distance * 0.000004)
-            gap = self._speed * random.uniform(1.1, 1.9) * crowd
-            min_factor = 1.4 if self._distance > 2600 else 1.1
-            self._next_spawn_distance = self._distance + max(self._speed * min_factor, gap)
+            # odstęp STAŁY w ODLEGŁOŚCI (nie skaluje się z prędkością) — dzięki
+            # temu liczba przeszkód na dystans NIE maleje, gdy tor przyspiesza.
+            # Przy rosnącej prędkości te same odstępy = coraz krótsze okno reakcji
+            # (start ~1.9 s między przeszkodami → ~0.9 s przy maks. prędkości).
+            self._next_spawn_distance = self._distance + random.uniform(490, 660)
 
         self._runner_y += self._vy * dt
         self._vy += self._gravity * dt
@@ -165,33 +174,31 @@ class Stage3:
         grounded = self._runner_y >= self._rest_y - 2
         remaining = []
         for item in self._obstacles:
-            rect = item["rect"]
+            r = item["rect"]
             spd = self._speed + (self._DYN_EXTRA if item['kind'] == 'dynein' else 0)
             item['fx'] -= spd * dt                 # float → płynnie i w synchronie
-            rect.x = int(round(item['fx']))
-            if rect.right >= 0:
-                if rect.right < self._runner_x and not item["passed"]:
-                    item["passed"] = True
-                    self._score += 1
-                remaining.append(item)
-        self._obstacles = remaining
+            r.x = int(round(item['fx']))
+            if r.right < 0:
+                continue                           # zniknęła z lewej – usuwamy
+            remaining.append(item)
 
-        for item in self._obstacles:
-            kind, r = item['kind'], item["rect"]
-            if kind == 'gap':
+            if not item["passed"] and r.right < self._runner_x:
+                item["passed"] = True              # ominięta → punkt
+                self._score += 1
+
+            if item['kind'] == 'gap':
                 # giniesz tylko gdy na ziemi i >70% podstawy wisi nad dziurą
                 over = min(feet.right, r.right) - max(feet.left, r.left)
                 if grounded and over > 0.70 * feet.width:
                     self._game_over = True
-                    break
             else:
                 box = r
-                if kind == 'dynein':   # mniejszy, niższy hitbox – łatwiej przeskoczyć
+                if item['kind'] == 'dynein':  # mniejszy hitbox – łatwiej przeskoczyć
                     box = pygame.Rect(r.x + int(r.w * 0.16), r.y + int(r.h * 0.34),
                                       int(r.w * 0.68), int(r.h * 0.66))
                 if feet.colliderect(box):
                     self._game_over = True
-                    break
+        self._obstacles = remaining
 
     #Prostokąt kolizji = dolna część (stópki) kinezyny
     def _feet_rect(self):
@@ -288,22 +295,31 @@ class Stage3:
                                   (self._runner_x, int(self._runner_y)),
                                   self._walk_phase, speed=1.0, amp=4.0)
 
-        # HUD
-        cv.blit(config.font(36, bold=True).render(
-            "Kinezyna na mikrotubuli", True, config.TEXT), (30, 28))
-        cv.blit(config.font(28).render(f"Punkty: {self._score}", True,
-                                       config.ACCENT), (30, 76))
-        cv.blit(config.font(22).render("↑ / SPACE: skok    ↓: szybki opad",
-                                       True, config.MUTED), (30, 116))
-        cv.blit(config.font(22).render(
+        # niesiony ładunek – siedzi na ogonie (górze) kinezyny i jedzie razem z nią
+        ctype, ccolor = self._cargo
+        draw_cargo(cv, ctype, ccolor,
+                   self._runner_x + self._runner_w // 2,
+                   int(self._runner_y) + int(self._runner_h * 0.10),
+                   scale=0.55)
+
+        # HUD – spójny label lewy-górny: tytuł etapu + Wynik
+        cv.blit(config.font(26, bold=True).render(
+            "Etap 3", True, config.TEXT), (30, 12))
+        cv.blit(config.font(18, bold=True).render(
+            "Transport", True, config.MUTED), (30, 44))
+        cv.blit(config.font(24, bold=True).render(
+            f"Wynik: {self._score}", True, config.ACCENT), (30, 70))
+        cv.blit(config.font(20).render("↑ / SPACE: skok    ↓: szybki opad",
+                                       True, config.MUTED), (30, 104))
+        cv.blit(config.font(20).render(
             f"Przebyta odległość: {int(self._distance // 10)}", True, config.MUTED),
-            (30, 146))
+            (30, 130))
 
         if self._game_over:
             overlay = pygame.Surface((w, h), pygame.SRCALPHA)
             overlay.fill((20, 20, 35, 160))
             cv.blit(overlay, (0, 0))
-            msg = config.font(48, bold=True).render("Koniec biegu!", True, config.WHITE)
+            msg = config.font(48, bold=True).render("Koniec transportu!", True, config.WHITE)
             cv.blit(msg, msg.get_rect(center=(w // 2, h // 2 - 60)))
             detail = config.font(24).render(f"Twój wynik: {self._score}", True, config.WHITE)
             cv.blit(detail, detail.get_rect(center=(w // 2, h // 2)))

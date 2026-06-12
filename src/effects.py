@@ -9,6 +9,8 @@ Zawiera:
     motora na lewą/prawą główkę i buja je naprzemiennie (hand-over-hand).
 """
 
+import os
+import json
 import math
 import random
 import pygame
@@ -116,6 +118,97 @@ class CellBackground:
         head = self.KIN_HEADS[seed % len(self.KIN_HEADS)]
         pygame.draw.circle(surface, head, (x - 4, int(base + head_dy)), 4)
         pygame.draw.circle(surface, head, (x + 4, int(base - head_dy)), 4)
+
+
+def _band_centroid_x(img, top):
+    """Środek (x) nieprzezroczystych pikseli przy górnej/dolnej krawędzi obrazka."""
+    w, h = img.get_size()
+    band = max(1, int(h * 0.12))
+    try:
+        alpha = pygame.surfarray.array_alpha(img)         # [x][y]
+    except Exception:
+        return w / 2
+    sl = alpha[:, 0:band] if top else alpha[:, h - band:h]
+    cols = (sl > 40).any(axis=1)
+    xs = [x for x in range(w) if cols[x]]
+    return sum(xs) / len(xs) if xs else w / 2
+
+
+_ANCHOR_OVERRIDES = None
+
+
+def _anchor_overrides():
+    """Ręcznie dostrojone anchory części (anchors.json, px natywne) – te same,
+    których używa etap 1, więc figury składają się 1:1 jak w grze."""
+    global _ANCHOR_OVERRIDES
+    if _ANCHOR_OVERRIDES is None:
+        path = os.path.join(os.path.dirname(__file__), '..', 'assets',
+                            'images', 'puzzle-pieces', 'anchors.json')
+        try:
+            with open(path, encoding='utf-8') as fh:
+                _ANCHOR_OVERRIDES = json.load(fh)
+        except (OSError, ValueError):
+            _ANCHOR_OVERRIDES = {}
+    return _ANCHOR_OVERRIDES
+
+
+def assemble_protein(part_paths):
+    """Składa białko motoryczne z części (kolejność OD DOŁU do GÓRY: motor,
+    [trzon], ogon) w jeden Surface. Punkty łączenia ('top'/'bottom', px natywne)
+    bierze z anchors.json – dokładnie tak jak etap 1 – a gdy ich brak, używa
+    centroidu nieprzezroczystych pikseli. Dzięki temu figury na ekranie wiedzy
+    składają się tak samo dobrze jak w rozgrywce.
+    """
+    overrides = _anchor_overrides()
+    placed, conn = [], (0.0, 0.0)
+    for p in part_paths:
+        img = pygame.image.load(p).convert_alpha()
+        h = img.get_height()
+        ov = overrides.get(os.path.basename(p))
+        if ov and 'top' in ov and 'bottom' in ov:
+            top, bottom = tuple(ov['top']), tuple(ov['bottom'])
+        else:
+            top = (_band_centroid_x(img, top=True), 0.0)
+            bottom = (_band_centroid_x(img, top=False), float(h - 1))
+        tl = (conn[0] - bottom[0], conn[1] - bottom[1])
+        placed.append((img, tl))
+        conn = (tl[0] + top[0], tl[1] + top[1])
+    minx = min(tl[0] for _, tl in placed)
+    miny = min(tl[1] for _, tl in placed)
+    maxx = max(tl[0] + im.get_width() for im, tl in placed)
+    maxy = max(tl[1] + im.get_height() for im, tl in placed)
+    surf = pygame.Surface((max(1, int(maxx - minx)), max(1, int(maxy - miny))),
+                          pygame.SRCALPHA)
+    for im, tl in placed:
+        surf.blit(im, (int(tl[0] - minx), int(tl[1] - miny)))
+    return surf
+
+
+def draw_cargo(surface, cargo_type, color, cx, cy, scale=1.0):
+    """Rysuje ładunek (cargo) danego typu wyśrodkowany w (cx, cy).
+
+    Współdzielone przez etap 2 (dokowanie) i etap 3 (transport), żeby ten sam
+    ładunek wyglądał identycznie w obu miejscach. `scale` zmniejsza/powiększa
+    rysunek (etap 3 wozi go mniejszy na ogonie kinezyny). Bez podpisu tekstowego.
+    """
+    def s(v):
+        return max(1, int(v * scale))
+
+    if cargo_type == "Mitochondrium":
+        pygame.draw.ellipse(surface, color, (cx - s(24), cy - s(16), s(48), s(32)))
+        for off in (-12, -6, 0, 6, 12):
+            pygame.draw.line(surface, (160, 90, 50),
+                             (cx + s(off), cy - s(10)), (cx + s(off), cy + s(10)), s(3))
+    elif cargo_type == "Lizosom":
+        pygame.draw.circle(surface, color, (cx, cy), s(20))
+        for angle in range(0, 360, 45):
+            dx = int(s(12) * math.cos(math.radians(angle)))
+            dy = int(s(12) * math.sin(math.radians(angle)))
+            pygame.draw.circle(surface, (220, 170, 235), (cx + dx, cy + dy), s(6))
+    else:  # "Pęcherzyk" (domyślny)
+        pygame.draw.circle(surface, color, (cx, cy), s(20))
+        pygame.draw.circle(surface, (255, 255, 255), (cx - s(6), cy - s(6)), s(6))
+        pygame.draw.circle(surface, (255, 255, 255), (cx + s(8), cy - s(8)), s(4))
 
 
 def draw_walking_motor(surface, build_img, rect, cut_x, t, amp=3.0, speed=4.5):

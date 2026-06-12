@@ -234,7 +234,7 @@ class Stage1:
         self._slots   = [None, None, None]
         self._drag    = None
         self._drag_from = None      # indeks slotu, z którego podniesiono element
-        self._attempts = 0          # liczba wciśnięć „Zatwierdź"
+        self._fails    = 0          # liczba błędnych „Zatwierdź" (wynik = 20 - pomyłki)
         self._solved   = False
         self._msg      = None       # komunikat po błędnym zatwierdzeniu
         self._score    = 0
@@ -339,7 +339,7 @@ class Stage1:
         self._target_idx = (self._target_idx + delta) % len(self._targets)
         self._solved = False        # nowy cel = świeże wyzwanie
         self._msg = None
-        self._attempts = 0
+        # pomyłki (self._fails) liczą się globalnie – nie zerujemy przy zmianie celu
         for p in self._slots:
             if p is not None:
                 p.wrong = False
@@ -477,6 +477,12 @@ class Stage1:
         elif e.type == pygame.MOUSEMOTION and self._drag:
             cx, cy = self._to_canvas(e.pos)
             self._drag.rect.center = (int(cx), int(cy))
+        elif e.type == pygame.KEYDOWN and e.key == pygame.K_RETURN:
+            # Enter = Dalej (gdy ukończone hetero) lub Zatwierdź (gdy pełne)
+            if self._solved and self._target() == CORRECT_SPECIES:
+                self.next(self._score)
+            elif self._is_full():
+                self._submit()
 
     def _on_down(self, pos):
         # strzałki wyboru celu – zawsze aktywne
@@ -572,7 +578,6 @@ class Stage1:
         return all(s is not None for s in self._slots)
 
     def _submit(self):
-        self._attempts += 1
         target = self._target()
         placed = list(self._slots)
         ok = [target in p.match_species for p in placed]
@@ -580,9 +585,12 @@ class Stage1:
             p.wrong = not good
         if all(ok):
             self._solved = True
-            self._score  = max(40, 100 - 20 * (self._attempts - 1))
+            # wynik = 20 - pomyłki (liczony dla celu zadania = heterokinezyna-2)
+            if target == CORRECT_SPECIES:
+                self._score = max(0, 20 - self._fails)
             self._msg = None
         else:
+            self._fails += 1
             name, is_chimera = self._build_name()
             tname = _SPECIES_NAME.get(target, target)
             if is_chimera:
@@ -697,7 +705,7 @@ class Stage1:
         pygame.draw.rect(self._canvas, TRAY_BG, pygame.Rect(0, 0, TRAY_W, h))
         pygame.draw.line(self._canvas, config.MUTED, (TRAY_W, 0), (TRAY_W, h), 2)
 
-        title = config.font(20, bold=True).render('Elementy', True, config.TEXT)
+        title = config.font(20, bold=True).render('Dostępne elementy', True, config.TEXT)
         self._canvas.blit(title, title.get_rect(centerx=TRAY_W // 2, y=14))
         sub = config.font(13).render('przeciągnij na mikrotubulę', True, config.MUTED)
         self._canvas.blit(sub, sub.get_rect(centerx=TRAY_W // 2, y=40))
@@ -779,13 +787,16 @@ class Stage1:
     def _draw_hud(self, w, h):
         asm_cx = (TRAY_W + (w - REF_W)) // 2
 
-        # licznik prób (bez wyświetlania wyniku %)
-        self._canvas.blit(config.font(13).render('Próby', True, config.MUTED),
-                         (TRAY_W + 16, 18))
-        self._canvas.blit(
-            config.font(30, bold=True).render(str(self._attempts), True,
-                                              config.TEXT),
-            (TRAY_W + 16, 32))
+        # tytuł w DWÓCH liniach ("Etap 1" / "Składanie") — krótka pierwsza linia
+        # nie wchodzi już w komunikaty rysowane na środku górą pola budowy
+        x0 = TRAY_W + 16
+        self._canvas.blit(config.font(26, bold=True).render(
+            'Etap 1', True, config.TEXT), (x0, 12))
+        self._canvas.blit(config.font(18, bold=True).render(
+            'Składanie', True, config.MUTED), (x0, 44))
+        self._canvas.blit(config.font(24, bold=True).render(
+            f'Wynik: {max(0, 20 - self._fails)}', True, config.ACCENT),
+            (x0, 70))
 
         # komunikat (chimera / błąd) – u góry pola budowy, z zawijaniem
         if self._msg and not self._solved:

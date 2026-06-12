@@ -47,25 +47,6 @@ conda activate kinesinquest
 python main.py
 ```
 
-### Opcje deweloperskie do szybszego sprawdzania poszczególnych etapów
-
-```bash
-python main.py --debug          # logi + pomiń animacje
-python main.py --level 1        # zacznij od razu od poziomu 1
-python main.py --minigame 1     # zacznij od minigry 1
-python main.py --minigame 2     # zacznij od minigry 2
-```
-
----
-
-## Assety do przygotowania
-
-Będą potrzebne grafiki i może kilka poglądowych struktur 3D z pdb do wyświetlania użytkownikom. Reszta informacji w readme w poszczególnych katalogach
-- **Grafiki** → `assets/images/README.md`
-- **Struktury 3D** (pliki PDB) → `assets/structures/README.md`
-
----
-
 ## Mini tutorial git
 
 Każdy implementowany etap powinien mieć swoją gałąź np: `welcome`, `level1-builder`

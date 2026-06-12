@@ -7,7 +7,7 @@ pozwala ustawić te punkty ręcznie i zapisuje je do
 assets/images/puzzle-pieces/anchors.json, które gra wczytuje.
 
 Uruchom:
-    /home/lambi/miniconda3/envs/kinesinquest/bin/python anchor_tool.py
+    python3 anchor_tool.py
 
 Sterowanie:
     LEWY  klik   – ustaw DOLNY punkt (czerwony) – styk z elementem poniżej / mikrotubulą
