@@ -4,6 +4,7 @@ import math
 import json
 import random
 import src.config as config
+from src.effects import CellBackground
 
 """
 Etap 1 – Złóż heterokinezynę-2.
@@ -258,6 +259,9 @@ class Stage1:
         # Dzięki temu starannie dobrany układ "mieści się" niezależnie od
         # rozmiaru okna (skalowanie żyje poza stage1, w wymiarach z config.py).
         self._canvas = pygame.Surface((config.W, config.H))
+        self._t   = 0.0             # czas (do animacji tła)
+        self._bg  = CellBackground(config.W, config.H,
+                                   TRAY_W + 16, config.W - REF_W - 16)
         self._relayout()
 
     # -------------------------------------------------------------- setup
@@ -587,7 +591,7 @@ class Stage1:
                 self._msg = (f'To niestety nie {tname}, tylko {name}.', False)
 
     def _reset(self):
-        """Zacznij od nowa: zdejmij wszystko do tacki, wyzeruj próby."""
+        """Zacznij od nowa: zdejmij wszystko do tacki (próby zostają)."""
         if self._drag is not None:
             self._return_to_tray(self._drag)
             self._drag = None
@@ -596,13 +600,13 @@ class Stage1:
             if self._slots[i] is not None:
                 self._return_to_tray(self._slots[i])
                 self._slots[i] = None
-        self._attempts = 0
         self._solved = False
         self._msg = None
 
     # -------------------------------------------------------------- update
 
     def update(self, dt):
+        self._t += dt
         for p in self._slots:
             if p is not None and p.state == 'snapping':
                 p.lerp_t = min(1.0, p.lerp_t + dt * LERP_SPEED)
@@ -619,7 +623,7 @@ class Stage1:
     def draw(self):
         # 1) rysuj wszystko na stałej kanwie 1280x720
         w, h = config.W, config.H
-        self._canvas.fill(config.BG)
+        self._bg.draw(self._canvas, self._t)
 
         self._draw_microtubule(w, h)
         self._draw_assembly()
@@ -661,6 +665,8 @@ class Stage1:
     # ---- struktura ----------------------------------------------------
 
     def _draw_assembly(self):
+        # w etapie 1 kinezyna jest statyczna (kroczenie wydzielone do
+        # src/effects.draw_walking_motor – do użycia w kolejnych etapach)
         for p in self._slots:
             if p is None or p is self._drag:
                 continue
