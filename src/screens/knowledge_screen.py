@@ -136,5 +136,3 @@ class KnowledgeScreen:
         pygame.draw.rect(self.screen, config.ACCENT, self._btn, border_radius=8)
         b = config.font(20).render("← Powrót", True, config.WHITE)
         self.screen.blit(b, b.get_rect(center=self._btn.center))
-        hint = config.font(14).render("Enter / Esc - powrót", True, config.MUTED)
-        self.screen.blit(hint, hint.get_rect(midleft=(self._btn.right + 16, self._btn.centery)))

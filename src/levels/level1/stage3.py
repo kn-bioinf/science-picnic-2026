@@ -31,6 +31,20 @@ class Stage3:
             ('MAP4', (200, 150,  80)), ('DCX',  ( 90, 180, 130))]
     _DYN_EXTRA = 40.0     # dyneina nadjeżdża nieco szybciej niż przewija się tor
 
+    # Komunikaty końca biegu zależne od PRZYCZYNY - losowane dla różnorodności.
+    # Dla 'map' {name} zostaje podmienione na nazwę białka (Tau / MAP2 / ...).
+    OVER_MESSAGES = {
+        'gap': ["Wypadłeś z mikrotubuli!",
+                "Krok w pustkę - kinezyna spadła z toru!",
+                "Stópki trafiły w lukę w mikrotubuli!"],
+        'dynein': ["Czołowe zderzenie z dyneiną!",
+                   "Dyneina szła pod prąd - i staranowała kinezynę!",
+                   "Bęc! Dyneina zablokowała tor."],
+        'map': ["Kinezyna wpadła na białko {name}!",
+                "Zaplątałeś się w białko {name}!",
+                "Białko {name} zatrzymało transport!"],
+    }
+
     #Ustawienia przy inicjowaniu
     def __init__(self, screen, state, next_fn):
         self.screen = screen
@@ -45,6 +59,7 @@ class Stage3:
         self._distance = 0.0
         self._score = 0
         self._game_over = False
+        self._over_msg = ""
         self._obstacles = []
         self._next_spawn_distance = 0.0
 
@@ -107,10 +122,10 @@ class Stage3:
     #Obsługa zdarzeń: ↑/SPACE skok, ↓ szybki opad, klik „Dalej" po końcu
     def handle_event(self, e):
         if e.type == pygame.KEYDOWN:
-            if e.key in (pygame.K_SPACE, pygame.K_UP):
+            if e.key in (pygame.K_SPACE, pygame.K_UP, pygame.K_w):
                 if not self._game_over and self._runner_y >= self._rest_y:
                     self._vy = self._jump_speed
-            elif e.key == pygame.K_DOWN:
+            elif e.key == pygame.K_DOWN or e.key == pygame.K_s:
                 if not self._game_over and self._runner_y < self._rest_y:
                     self._vy = max(self._vy, 1600.0)
             elif e.key == pygame.K_RETURN and self._game_over:
@@ -118,6 +133,13 @@ class Stage3:
         if (e.type == pygame.MOUSEBUTTONDOWN and self._game_over
                 and self._btn.collidepoint(self._to_canvas(e.pos))):
             self.next(self._score)
+
+    #Koniec biegu z konkretną przyczyną - dobiera komunikat (raz, nie co klatkę)
+    def _end_run(self, cause, name=None):
+        self._game_over = True
+        msgs = self.OVER_MESSAGES.get(cause, ["Koniec transportu!"])
+        msg = random.choice(msgs)
+        self._over_msg = msg.replace("{name}", name) if name else msg
 
     #Generowanie przeszkód: MAP (przeskok), luka w torze (przeskok), dyneina
     def _spawn_obstacle(self, w, h):
@@ -152,7 +174,7 @@ class Stage3:
             return
         w, h = config.W, config.H
         self._distance += self._speed * dt
-        self._speed = 280.0 + min(260.0, self._distance * 0.008)   # spokojne tempo
+        self._speed = 280.0 + min(750.0, self._distance * 0.03)   # spokojne tempo
         self._t += dt
         self._walk_phase += self._speed * dt * 0.02   # główki kroczą ∝ prędkości
 
@@ -190,14 +212,14 @@ class Stage3:
                 # giniesz tylko gdy na ziemi i >70% podstawy wisi nad dziurą
                 over = min(feet.right, r.right) - max(feet.left, r.left)
                 if grounded and over > 0.70 * feet.width:
-                    self._game_over = True
+                    self._end_run('gap')
             else:
                 box = r
                 if item['kind'] == 'dynein':  # mniejszy hitbox - łatwiej przeskoczyć
                     box = pygame.Rect(r.x + int(r.w * 0.16), r.y + int(r.h * 0.34),
                                       int(r.w * 0.68), int(r.h * 0.66))
                 if feet.colliderect(box):
-                    self._game_over = True
+                    self._end_run(item['kind'], item.get('name'))
         self._obstacles = remaining
 
     #Prostokąt kolizji = dolna część (stópki) kinezyny
@@ -309,17 +331,12 @@ class Stage3:
             "Transport", True, config.MUTED), (30, 44))
         cv.blit(config.font(24, bold=True).render(
             f"Wynik: {self._score}", True, config.ACCENT), (30, 70))
-        cv.blit(config.font(20).render("↑ / SPACE: skok    ↓: szybki opad",
-                                       True, config.MUTED), (30, 104))
-        cv.blit(config.font(20).render(
-            f"Przebyta odległość: {int(self._distance // 10)}", True, config.MUTED),
-            (30, 130))
 
         if self._game_over:
             overlay = pygame.Surface((w, h), pygame.SRCALPHA)
             overlay.fill((20, 20, 35, 160))
             cv.blit(overlay, (0, 0))
-            msg = config.font(48, bold=True).render("Koniec transportu!", True, config.WHITE)
+            msg = config.font(44, bold=True).render(self._over_msg, True, config.WHITE)
             cv.blit(msg, msg.get_rect(center=(w // 2, h // 2 - 60)))
             detail = config.font(24).render(f"Twój wynik: {self._score}", True, config.WHITE)
             cv.blit(detail, detail.get_rect(center=(w // 2, h // 2)))

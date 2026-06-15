@@ -28,9 +28,10 @@ class Level1Controller:
         self.manager = manager
         self.mode = mode
         self._scores = {}
-        # małe, dyskretne przyciski adminowe (pozycja liczona przy rysowaniu)
-        self._btn_restart = pygame.Rect(0, 0, 96, 28)
-        self._btn_quit = pygame.Rect(0, 0, 96, 28)
+        # przyciski adminowe w rogu (pozycja liczona przy rysowaniu);
+        # większe, by łatwo było w nie trafić (również na dotyku)
+        self._btn_restart = pygame.Rect(0, 0, 128, 42)
+        self._btn_quit = pygame.Rect(0, 0, 128, 42)
         self._start(stage if mode == "single" else 1)
 
     def _start(self, n):
@@ -62,14 +63,14 @@ class Level1Controller:
     def _draw_admin(self):
         self._layout_admin()
         for rect, label in ((self._btn_restart, "Restart"),
-                            (self._btn_quit, "Quit")):
+                            (self._btn_quit, "Wyjdź")):
             pill = pygame.Surface(rect.size, pygame.SRCALPHA)
-            pygame.draw.rect(pill, (28, 38, 66, 95), pill.get_rect(),
-                             border_radius=6)
-            pygame.draw.rect(pill, (255, 255, 255, 70), pill.get_rect(), 1,
-                             border_radius=6)
+            pygame.draw.rect(pill, (28, 38, 66, 120), pill.get_rect(),
+                             border_radius=8)
+            pygame.draw.rect(pill, (255, 255, 255, 90), pill.get_rect(), 1,
+                             border_radius=8)
             self.screen.blit(pill, rect.topleft)
-            lbl = config.font(14).render(label, True, (225, 232, 245))
+            lbl = config.font(17, bold=True).render(label, True, (230, 236, 248))
             self.screen.blit(lbl, lbl.get_rect(center=rect.center))
 
     # ------------------------------------------------------------ pętla sceny

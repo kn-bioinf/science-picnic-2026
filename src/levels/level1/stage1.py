@@ -706,9 +706,7 @@ class Stage1:
         pygame.draw.line(self._canvas, config.MUTED, (TRAY_W, 0), (TRAY_W, h), 2)
 
         title = config.font(20, bold=True).render('Dostępne elementy', True, config.TEXT)
-        self._canvas.blit(title, title.get_rect(centerx=TRAY_W // 2, y=14))
-        sub = config.font(13).render('przeciągnij na mikrotubulę', True, config.MUTED)
-        self._canvas.blit(sub, sub.get_rect(centerx=TRAY_W // 2, y=40))
+        self._canvas.blit(title, title.get_rect(centerx=TRAY_W // 2, y=18))
 
         # nagłówki kolumn = klasy (kolejność budowania jest znana)
         col_w = (TRAY_W - 24) // 3
@@ -720,6 +718,13 @@ class Stage1:
         for p in self._pieces:
             if p.state == 'tray':
                 self._canvas.blit(p.thumb, p.thumb_rect)
+            elif p is self._drag and self._drag_from is None:
+                # element podniesiony z tacki - zostawiamy półprzezroczysty
+                # „ślad" na jego miejscu, żeby tacka nie wyglądała na pustą
+                # (intuicyjnie widać, skąd element pochodzi i że tam wróci).
+                ghost = p.thumb.copy()
+                ghost.set_alpha(80)
+                self._canvas.blit(ghost, p.thumb_rect)
 
     # ---- panel referencyjny ------------------------------------------
 

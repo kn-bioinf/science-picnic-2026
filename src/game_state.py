@@ -1,5 +1,40 @@
 from pathlib import Path
 import json
+import sys
+
+# Backend trwałego zapisu rankingu:
+#  - desktop  -> plik ranking.json (jak dotychczas),
+#  - web (pygbag/Emscripten) -> localStorage przeglądarki (per-urządzenie).
+# W przeglądarce nie ma współdzielonego dysku, więc plik nie przetrwałby
+# odświeżenia strony - localStorage przetrwa na danym urządzeniu.
+IS_WEB = sys.platform in ("emscripten", "wasi")
+_LS_KEY = "kinesinquest_ranking"
+
+
+def _storage_read():
+    """Zwraca surowy JSON rankingu jako str albo None, gdy brak danych."""
+    if IS_WEB:
+        try:
+            import platform  # pygbag dostarcza dostęp do JS przez platform.window
+            return platform.window.localStorage.getItem(_LS_KEY)
+        except Exception:
+            return None
+    path = GameState.RANKING_FILE
+    if not path.exists():
+        return None
+    return path.read_text()
+
+
+def _storage_write(raw):
+    """Zapisuje surowy JSON rankingu do właściwego backendu."""
+    if IS_WEB:
+        try:
+            import platform
+            platform.window.localStorage.setItem(_LS_KEY, raw)
+        except Exception:
+            pass
+        return
+    GameState.RANKING_FILE.write_text(raw)
 
 
 class GameState:
@@ -37,9 +72,10 @@ class GameState:
         """Zwraca słownik kategorii. Migruje stary format (płaska lista)."""
         base = {c: [] for c in cls.CATEGORIES}
         try:
-            if not cls.RANKING_FILE.exists():
+            raw = _storage_read()
+            if not raw:
                 return base
-            data = json.loads(cls.RANKING_FILE.read_text())
+            data = json.loads(raw)
             if isinstance(data, list):          # stary format -> total
                 base["total"] = data
                 return base
@@ -65,8 +101,7 @@ class GameState:
             rankings[category], key=lambda x: x.get("score", 0), reverse=True
         )[: self.TOP_N]
         try:
-            self.RANKING_FILE.write_text(json.dumps(rankings, indent=2,
-                                                    ensure_ascii=False))
+            _storage_write(json.dumps(rankings, indent=2, ensure_ascii=False))
         except Exception:
             pass
         return rankings[category]

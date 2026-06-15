@@ -67,25 +67,20 @@ class MenuScreen:
         self._buttons = []
         cx = w // 2
 
-        title = config.font(48, bold=True).render("Kinezyna na mikrotubuli",
-                                                  True, config.TEXT)
-        self.screen.blit(title, title.get_rect(center=(cx, 70)))
-        sub = config.font(20).render("Science Picnic 2026", True, config.MUTED)
-        self.screen.blit(sub, sub.get_rect(center=(cx, 110)))
+        title = config.font(52, bold=True).render("KinesinQuest", True, config.TEXT)
+        self.screen.blit(title, title.get_rect(center=(cx, 84)))
 
-        # pole imienia
-        lbl = config.font(18).render("Twoje imię:", True, config.TEXT)
-        self.screen.blit(lbl, lbl.get_rect(center=(cx, 158)))
-        box = pygame.Rect(0, 0, 360, 52); box.center = (cx, 196)
+        # pole imienia - sam placeholder, bez osobnej etykiety
+        box = pygame.Rect(0, 0, 360, 52); box.center = (cx, 168)
         pygame.draw.rect(self.screen, (235, 240, 252), box, border_radius=8)
         pygame.draw.rect(self.screen, config.ACCENT, box, 2, border_radius=8)
-        shown = self.name if self.name else "Wpisz imię..."
+        shown = self.name if self.name else "Twoje imię"
         col = config.TEXT if self.name else config.MUTED
         nm = config.font(26).render(shown, True, col)
         self.screen.blit(nm, nm.get_rect(center=box.center))
 
         # przyciski
-        y = 268
+        y = 248
         self._button(cx, y, 360, 56, "Zagraj całą grę", self._play_full,
                      primary=True); y += 70
         self._button(cx, y, 360, 48, "Etap 1: Składanie",
@@ -94,12 +89,12 @@ class MenuScreen:
                      lambda: self._play_stage(2), small=True); y += 56
         self._button(cx, y, 360, 48, "Etap 3: Transport",
                      lambda: self._play_stage(3), small=True); y += 70
-        self._button(cx - 95, y, 180, 46, "Ranking",
+        self._button(cx - 160, y, 150, 46, "Instrukcja",
+                     lambda: self.manager.transition_to(self.manager.INSTRUCTION),
+                     small=True)
+        self._button(cx, y, 150, 46, "Ranking",
                      lambda: self.manager.transition_to(self.manager.RANKING),
                      small=True)
-        self._button(cx + 95, y, 180, 46, "Wiedza na start",
+        self._button(cx + 160, y, 150, 46, "Wiedza",
                      lambda: self.manager.transition_to(self.manager.KNOWLEDGE),
                      small=True)
-
-        hint = config.font(16).render("Enter - zagraj całą grę", True, config.MUTED)
-        self.screen.blit(hint, hint.get_rect(center=(cx, y + 50)))

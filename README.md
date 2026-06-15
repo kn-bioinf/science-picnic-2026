@@ -1,17 +1,17 @@
 # KinesinQuest - Science Picnic 2026
 
-Biologiczna gra edukacyjna o białku motorowym **kinezynie**.
-Silnik gry: **Pygame** | Wizualizacja 3D: **PyMOL**
+Biologiczna gra edukacyjna o białku motorycznym **kinezynie**.
+Silnik gry: **Pygame** | Struktury białek renderowane offline w **PyMOL**
 
 ---
 
 ## Struktura gry
 
-Ekran powitalny | Imię gracza, wybór poziomu
+Menu | Imię gracza, wybór trybu, ranking, wiedza i instrukcja
 Level 1:
-    Budowa kinezyny | Składanie "głowy", "nóg" i "butów" (3 kroki)
-    Minigra 1: Docking | Trafienie ATP do kieszeni - refleks
-    Minigra 2: Runner | Kinezyna na mikrotubuli - dino-runner
+    Etap 1 - Składanie | Złóż heterokinezynę-2 z domen (głowa motoryczna → trzon → ogon), wybierając właściwe warianty
+    Etap 2 - Dokowanie | Zrzuć ładunek (pęcherzyk / mitochondrium / lizosom) dokładnie na ogon kinezyny - refleks
+    Etap 3 - Transport | Kinezyna biegnie po mikrotubuli i omija przeszkody (białka MAP, dyneinę, luki w torze) - styl dino-runner
 Ekran końcowy + Ranking
 
 ---

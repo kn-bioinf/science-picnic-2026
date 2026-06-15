@@ -89,6 +89,3 @@ class RankingScreen:
         pygame.draw.rect(self.screen, config.ACCENT, self._btn, border_radius=8)
         b = config.font(20).render("← Menu", True, config.WHITE)
         self.screen.blit(b, b.get_rect(center=self._btn.center))
-        hint = config.font(14).render("← → zmiana zakładki   ·   Enter/Esc - menu",
-                                      True, config.MUTED)
-        self.screen.blit(hint, hint.get_rect(center=(cx, h - 24)))

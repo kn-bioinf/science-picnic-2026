@@ -22,6 +22,15 @@ class Stage2:
         {"name": "Lizosom", "color": (175, 95, 200)},
     ]
 
+    # Komunikaty po nietrafieniu - losowane, żeby porażka nie była monotonna
+    FAIL_MESSAGES = [
+        "Ładunek poleciał w cytozol!",
+        "Pudło! Ogon kinezyny pozostał pusty.",
+        "Spóźniony zrzut - ładunek minął kinezynę.",
+        "Za wcześnie! Ładunek nie trafił w ogon.",
+        "Ładunek rozpłynął się w cytoplazmie...",
+    ]
+
     def __init__(self, screen, state, next_fn):
         self.screen = screen
         self.state = state
@@ -39,6 +48,7 @@ class Stage2:
         self._released = False
         self._hit = False
         self._failed = False
+        self._fail_msg = ""
         self._score = 0
 
         self._target = None
@@ -65,7 +75,7 @@ class Stage2:
         self._direction = random.choice([-1, 1])
         self._released = self._hit = self._failed = False
         self._mt_y = int(h * 0.86)
-        kin_h = int(h * 0.40)      # ~15% większa kinezyna - łatwiej trafić w ogon
+        kin_h = int(h * 0.40)     
         scale = kin_h / self._kin_raw.get_height()
         self._kin_img = pygame.transform.smoothscale(
             self._kin_raw,
@@ -106,15 +116,18 @@ class Stage2:
             return pos
         return ((pos[0] - ox) / s, (pos[1] - oy) / s)
 
-    #Obsługa zdarzeń: SPACE upuszcza, Enter/klik = Dalej po pudle
+    #Obsługa zdarzeń: SPACE lub lewy klik upuszcza, Enter/klik = Dalej po pudle
     def handle_event(self, e):
-        if (e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE
-                and not self._released and not self._hit and not self._failed):
+        # zrzut ładunku: spacja ALBO lewy przycisk myszy (oba działają tak samo)
+        drop = ((e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE)
+                or (e.type == pygame.MOUSEBUTTONDOWN and e.button == 1
+                    and not self._failed))
+        if drop and not self._released and not self._hit and not self._failed:
             self._released = True
             self._vel = [0.0, 0.0]
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_RETURN and self._failed:
             self.next(self._score)
-        elif (e.type == pygame.MOUSEBUTTONDOWN and self._failed
+        elif (e.type == pygame.MOUSEBUTTONDOWN and e.button == 1 and self._failed
               and self._btn.collidepoint(self._to_canvas(e.pos))):
             self.next(self._score)
 
@@ -133,7 +146,7 @@ class Stage2:
             self._refresh_kin()
 
         if not self._released:
-            new_x = self._anchor_x + self._direction * (self._line_speed + self._score * 14.0) * dt
+            new_x = self._anchor_x + self._direction * (self._line_speed + self._score * 30.0) * dt
             if new_x < self._min_x:
                 new_x, self._direction = self._min_x, 1
             elif new_x > self._max_x:
@@ -155,6 +168,7 @@ class Stage2:
                 self._setup_board()
             elif self._pos[1] > h + 20:
                 self._failed = True
+                self._fail_msg = random.choice(self.FAIL_MESSAGES)
 
     def _draw_object(self, x, y):
         cv = self._canvas
@@ -203,16 +217,12 @@ class Stage2:
             "Dokowanie ładunku", True, config.MUTED), (30, 44))
         cv.blit(config.font(24, bold=True).render(
             f"Wynik: {self._score}", True, config.ACCENT), (30, 70))
-        cv.blit(config.font(20).render(
-            "SPACE - zwolnij ładunek nad ogonem kinezyny", True, config.MUTED), (30, 104))
-        cv.blit(config.font(18).render(
-            f"Ładunek: {self._object_type}", True, config.ACCENT), (30, 132))
 
         if self._failed:
             overlay = pygame.Surface((w, h), pygame.SRCALPHA)
             overlay.fill((20, 20, 45, 170))
             cv.blit(overlay, (0, 0))
-            res = config.font(40, bold=True).render("Nie trafiłeś w kieszeń.",
+            res = config.font(40, bold=True).render(self._fail_msg,
                                                     True, config.WHITE)
             cv.blit(res, res.get_rect(center=(w // 2, h // 2 - 50)))
             det = config.font(24).render(f"Wynik: {self._score}", True, config.WHITE)

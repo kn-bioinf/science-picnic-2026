@@ -2,6 +2,7 @@ from src.screens.menu_screen import MenuScreen
 from src.screens.end_screen import EndScreen
 from src.screens.ranking_screen import RankingScreen
 from src.screens.knowledge_screen import KnowledgeScreen
+from src.screens.instruction_screen import InstructionScreen
 from src.levels.level1.controller import Level1Controller
 
 
@@ -16,6 +17,7 @@ class GameManager:
     MENU = "menu"
     RANKING = "ranking"
     KNOWLEDGE = "knowledge"
+    INSTRUCTION = "instruction"
     END = "end"
 
     def __init__(self, screen, state):
@@ -30,6 +32,7 @@ class GameManager:
             self.MENU:      lambda: MenuScreen(self.screen, self.state, self),
             self.RANKING:   lambda: RankingScreen(self.screen, self.state, self),
             self.KNOWLEDGE: lambda: KnowledgeScreen(self.screen, self.state, self),
+            self.INSTRUCTION: lambda: InstructionScreen(self.screen, self.state, self),
             self.END:       lambda: EndScreen(self.screen, self.state, self),
         }
         self._scene = scenes[scene_id]()
