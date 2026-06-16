@@ -52,6 +52,14 @@ class Stage3:
         self.next = next_fn
         self._btn = pygame.Rect(0, 0, 180, 48)
 
+        # sterowanie dotykowe (telefon/tablet) - przyciski ▲ (skok) po lewej
+        # i ▼ (szybki opad) po prawej, w bocznych marginesach. Na desktopie
+        # config.is_touch() = False, więc przyciski się nie pojawiają.
+        self._touch = config.is_touch()
+        self._btn_up = pygame.Rect(0, 0, 92, 92)     # skok (lewa strona)
+        self._btn_down = pygame.Rect(0, 0, 92, 92)   # opad (prawa strona)
+        self._touch_r = 46
+
         # ładunek niesiony przez kinezynę = ostatni zadokowany w etapie 2
         # (a gdy etap 3 gramy solo i nic nie ma - domyślny pęcherzyk)
         self._cargo = getattr(state, "last_cargo", None) or ("Pęcherzyk", (134, 190, 240))
@@ -119,8 +127,51 @@ class Stage3:
             return pos
         return ((pos[0] - ox) / s, (pos[1] - oy) / s)
 
+    # ----- przyciski dotykowe (we WSPÓŁRZĘDNYCH OKNA, nie kanwy) -----
+    def _layout_touch(self):
+        w, h = config.get_size()
+        s, ox, oy = self._view()
+        r = int(max(46, min(h * 0.12, 96)))     # promień - duży, pod kciuk
+        cy = int(h * 0.62)                        # niżej, w zasięgu kciuka
+        # środek w marginesie (letterbox), a gdy go brak - przy krawędzi ekranu
+        left_cx  = int(max(r + 14, ox * 0.5))
+        right_cx = int(min(w - r - 14, w - ox * 0.5))
+        self._touch_r = r
+        # ▲ skok po PRAWEJ, ▼ opad po LEWEJ
+        self._btn_up.size = (2 * r, 2 * r)
+        self._btn_up.center = (right_cx, cy)
+        self._btn_down.size = (2 * r, 2 * r)
+        self._btn_down.center = (left_cx, cy)
+
+    def _draw_touch_buttons(self):
+        self._layout_touch()
+        r = self._touch_r
+        for rect, up in ((self._btn_up, True), (self._btn_down, False)):
+            surf = pygame.Surface((2 * r, 2 * r), pygame.SRCALPHA)
+            pygame.draw.circle(surf, (40, 60, 110, 120), (r, r), r)
+            pygame.draw.circle(surf, (255, 255, 255, 180), (r, r), r, 3)
+            a = int(r * 0.5)
+            if up:
+                tri = [(r, r - a), (r - a, r + a // 2), (r + a, r + a // 2)]
+            else:
+                tri = [(r, r + a), (r - a, r - a // 2), (r + a, r - a // 2)]
+            pygame.draw.polygon(surf, (255, 255, 255, 235), tri)
+            self.screen.blit(surf, rect.topleft)
+
     #Obsługa zdarzeń: ↑/SPACE skok, ↓ szybki opad, klik „Dalej" po końcu
     def handle_event(self, e):
+        # przyciski dotykowe (telefon): ▲ skok / ▼ opad - współrzędne OKNA
+        if (self._touch and not self._game_over
+                and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1):
+            self._layout_touch()
+            if self._btn_up.collidepoint(e.pos):
+                if self._runner_y >= self._rest_y:
+                    self._vy = self._jump_speed
+                return
+            if self._btn_down.collidepoint(e.pos):
+                if self._runner_y < self._rest_y:
+                    self._vy = max(self._vy, 1600.0)
+                return
         if e.type == pygame.KEYDOWN:
             if e.key in (pygame.K_SPACE, pygame.K_UP, pygame.K_w):
                 if not self._game_over and self._runner_y >= self._rest_y:
@@ -351,3 +402,7 @@ class Stage3:
             cv, (max(1, int(config.W * s)), max(1, int(config.H * s))))
         self.screen.fill(config.BG)
         self.screen.blit(scaled, (int(ox), int(oy)))
+
+        # przyciski dotykowe rysujemy na OKNIE (w marginesach), nad sceną
+        if self._touch and not self._game_over:
+            self._draw_touch_buttons()

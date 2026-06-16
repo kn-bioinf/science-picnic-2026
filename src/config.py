@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+import sys
 import pygame
 
 """
@@ -59,3 +60,23 @@ def get_w():
 
 def get_h():
     return get_size()[1]
+
+
+# Czy gramy na urządzeniu dotykowym (telefon/tablet)? Tylko w przeglądarce
+# (pygbag); na desktopie zawsze False. Wykrywamy raz, przez media query
+# „pointer: coarse" - czyli główny wskaźnik to palec, nie mysz.
+_IS_TOUCH = None
+
+
+def is_touch():
+    global _IS_TOUCH
+    if _IS_TOUCH is None:
+        _IS_TOUCH = False
+        if sys.platform in ("emscripten", "wasi"):
+            try:
+                import platform
+                _IS_TOUCH = bool(
+                    platform.window.matchMedia("(pointer: coarse)").matches)
+            except Exception:
+                _IS_TOUCH = False
+    return _IS_TOUCH
